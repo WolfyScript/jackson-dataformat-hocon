@@ -148,12 +148,8 @@ public class HoconFactory extends JsonFactory {
         throws IOException, JsonParseException
     {
         Reader r = new StringReader(content);
-        IOContext ctxt = _createContext(r, true); // true->own, can close
-        // [JACKSON-512]: allow wrapping with InputDecorator
-        if (_inputDecorator != null) {
-            r = _inputDecorator.decorate(ctxt, r);
-        }
-        return _createParser(r, ctxt);
+        IOContext ctxt = _createContext(_createContentReference(r), true); // true->own, can close
+        return _createParser(_decorate(r, ctxt), ctxt);
     }
     
     @SuppressWarnings("resource")
@@ -181,12 +177,8 @@ public class HoconFactory extends JsonFactory {
     public HoconTreeTraversingParser createParser(InputStream in)
         throws IOException, JsonParseException
     {
-        IOContext ctxt = _createContext(in, false);
-        // [JACKSON-512]: allow wrapping with InputDecorator
-        if (_inputDecorator != null) {
-            in = _inputDecorator.decorate(ctxt, in);
-        }
-        return _createParser(in, ctxt);
+        IOContext ctxt = _createContext(_createContentReference(in), false);
+        return _createParser(_decorate(in, ctxt), ctxt);
     }
 
     @SuppressWarnings("resource")
@@ -194,11 +186,8 @@ public class HoconFactory extends JsonFactory {
     public JsonParser createParser(Reader r)
         throws IOException, JsonParseException
     {
-        IOContext ctxt = _createContext(r, false);
-        if (_inputDecorator != null) {
-            r = _inputDecorator.decorate(ctxt, r);
-        }
-        return _createParser(r, ctxt);
+        IOContext ctxt = _createContext(_createContentReference(r), false);
+        return _createParser(_decorate(r, ctxt), ctxt);
     }
 
     @SuppressWarnings("resource")
@@ -206,7 +195,7 @@ public class HoconFactory extends JsonFactory {
     public HoconTreeTraversingParser createParser(byte[] data)
         throws IOException, JsonParseException
     {
-        IOContext ctxt = _createContext(data, true);
+        IOContext ctxt = _createContext(_createContentReference(data), true);
         // [JACKSON-512]: allow wrapping with InputDecorator
         if (_inputDecorator != null) {
             InputStream in = _inputDecorator.decorate(ctxt, data, 0, data.length);
@@ -222,7 +211,7 @@ public class HoconFactory extends JsonFactory {
     public HoconTreeTraversingParser createParser(byte[] data, int offset, int len)
         throws IOException, JsonParseException
     {
-        IOContext ctxt = _createContext(data, true);
+        IOContext ctxt = _createContext(_createContentReference(data, offset, len), true);
         // [JACKSON-512]: allow wrapping with InputDecorator
         if (_inputDecorator != null) {
             InputStream in = _inputDecorator.decorate(ctxt, data, offset, len);
