@@ -50,7 +50,7 @@ public class HoconTreeTraversingParser extends ParserMinimalBase {
      * Array/Object nodes.
      */
     protected boolean _startContainer;
-    
+
     /**
      * Flag that indicates whether parser is closed or not. Gets
      * set when parser is either closed by explicit call
@@ -59,11 +59,11 @@ public class HoconTreeTraversingParser extends ParserMinimalBase {
     protected boolean _closed;
 
     private final ConfigObject _rootObject;
-    
+
     /**
      * HOCON specific getter for the originating ConfigObject. Useful for
      * accessing the underlying Config instance in custom deserializers.
-     * 
+     *
      * @return The ConfigObject with which this parser was instantiated.
      */
     public ConfigObject getConfigObject() {
@@ -98,36 +98,36 @@ public class HoconTreeTraversingParser extends ParserMinimalBase {
             _nodeCursor = new HoconNodeCursor.RootValue(n, null);
         }
     }
-    
+
     public static JsonToken asJsonToken(ConfigValue value) {
         if (HoconNodeCursor.isNumericallyIndexed(value)) {
             return JsonToken.START_ARRAY;
         }
         switch(value.valueType()) {
-			case BOOLEAN:
-				boolean bool = (Boolean) value.unwrapped();
-				return (bool) ? JsonToken.VALUE_TRUE 
-						      : JsonToken.VALUE_FALSE;
-			case NULL:
-				return JsonToken.VALUE_NULL;
-			case NUMBER:
-				Number unwrapped = (Number) value.unwrapped();
-				if(unwrapped instanceof Double) {
-					return JsonToken.VALUE_NUMBER_FLOAT;
-				} else {
-					return JsonToken.VALUE_NUMBER_INT;
-				}
-			case STRING:
-				return JsonToken.VALUE_STRING;
-			case LIST:
-				return JsonToken.START_ARRAY;
-			case OBJECT:
-				return JsonToken.START_OBJECT;
-			default:
-				throw new IllegalArgumentException("Unhandled type "+value.valueType());
-		
-		}
-	}
+            case BOOLEAN:
+                boolean bool = (Boolean) value.unwrapped();
+                return (bool) ? JsonToken.VALUE_TRUE
+                        : JsonToken.VALUE_FALSE;
+            case NULL:
+                return JsonToken.VALUE_NULL;
+            case NUMBER:
+                Number unwrapped = (Number) value.unwrapped();
+                if(unwrapped instanceof Double) {
+                    return JsonToken.VALUE_NUMBER_FLOAT;
+                } else {
+                    return JsonToken.VALUE_NUMBER_INT;
+                }
+            case STRING:
+                return JsonToken.VALUE_STRING;
+            case LIST:
+                return JsonToken.START_ARRAY;
+            case OBJECT:
+                return JsonToken.START_OBJECT;
+            default:
+                throw new IllegalArgumentException("Unhandled type "+value.valueType());
+
+        }
+    }
 
     @Override
     public void setCodec(ObjectCodec c) {
@@ -180,7 +180,7 @@ public class HoconTreeTraversingParser extends ParserMinimalBase {
             // minor optimization: empty containers can be skipped
             if (!_nodeCursor.currentHasChildren()) {
                 _currToken = (_currToken == JsonToken.START_OBJECT) ?
-                    JsonToken.END_OBJECT : JsonToken.END_ARRAY;
+                        JsonToken.END_OBJECT : JsonToken.END_ARRAY;
                 return _currToken;
             }
             _nodeCursor = _nodeCursor.iterateChildren();
@@ -208,7 +208,7 @@ public class HoconTreeTraversingParser extends ParserMinimalBase {
         _nodeCursor = _nodeCursor.getParent();
         return _currToken;
     }
-    
+
     // default works well here:
     //public JsonToken nextValue() throws IOException, JsonParseException
 
@@ -248,7 +248,7 @@ public class HoconTreeTraversingParser extends ParserMinimalBase {
             _nodeCursor.overrideCurrentName(name);
         }
     }
-    
+
     @Override
     public JsonStreamContext getParsingContext() {
         return _nodeCursor;
@@ -314,7 +314,7 @@ public class HoconTreeTraversingParser extends ParserMinimalBase {
         // generally we do not have efficient access as char[], hence:
         return false;
     }
-    
+
     /*
     /**********************************************************
     /* Public API, typed non-text access
@@ -325,31 +325,31 @@ public class HoconTreeTraversingParser extends ParserMinimalBase {
 
     @Override
     public NumberType getNumberType() throws IOException, JsonParseException {
-    	ConfigValue n = currentNumericNode();
-    	if(n == null)
-    		return null;
-    	
-    	Number value = (Number) n.unwrapped();
-    	if(value instanceof Double) {
-    		return NumberType.DOUBLE;
-    	} else if(value instanceof Long) {
-    		return NumberType.LONG;
-    	} else {
-    		return NumberType.INT;
-    	}
+        ConfigValue n = currentNumericNode();
+        if(n == null)
+            return null;
+
+        Number value = (Number) n.unwrapped();
+        if(value instanceof Double) {
+            return NumberType.DOUBLE;
+        } else if(value instanceof Long) {
+            return NumberType.LONG;
+        } else {
+            return NumberType.INT;
+        }
     }
 
     @Override
     public BigInteger getBigIntegerValue() throws IOException, JsonParseException {
-    	//I wish we could get at the string representation instead
-    	Long value = ((Number)  currentNumericNode().unwrapped()).longValue();
-    	return BigInteger.valueOf(value);
+        //I wish we could get at the string representation instead
+        Long value = ((Number)  currentNumericNode().unwrapped()).longValue();
+        return BigInteger.valueOf(value);
     }
 
     @Override
     public BigDecimal getDecimalValue() throws IOException, JsonParseException {
         Double value = ((Number) currentNumericNode().unwrapped()).doubleValue();
-    	return BigDecimal.valueOf(value);
+        return BigDecimal.valueOf(value);
     }
 
     @Override
@@ -402,7 +402,7 @@ public class HoconTreeTraversingParser extends ParserMinimalBase {
 
     @Override
     public byte[] getBinaryValue(Base64Variant b64variant)
-        throws IOException, JsonParseException
+            throws IOException, JsonParseException
     {
         // otherwise return null to mark we have no binary content
         return null;
@@ -435,9 +435,9 @@ public class HoconTreeTraversingParser extends ParserMinimalBase {
     }
 
     protected ConfigValue currentNumericNode()
-        throws JsonParseException
+            throws JsonParseException
     {
-    	ConfigValue n = currentNode();
+        ConfigValue n = currentNode();
         if (n == null || n.valueType() != ConfigValueType.NUMBER) {
             JsonToken t = (n == null) ? null : asJsonToken(n);
             throw _constructError("Current token ("+t+") not numeric, can not use numeric value accessors");

@@ -2,7 +2,6 @@ package com.jasonclawson.jackson.dataformat.hocon;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -29,16 +28,16 @@ import com.typesafe.config.*;
  *
  */
 public class HoconFactory extends JsonFactory {
-	private static final long serialVersionUID = 1L;
-	
-	public final static String FORMAT_NAME_HOCON = "HOCON";
-	
-	private final static byte UTF8_BOM_1 = (byte) 0xEF;
+    private static final long serialVersionUID = 1L;
+
+    public final static String FORMAT_NAME_HOCON = "HOCON";
+
+    private final static byte UTF8_BOM_1 = (byte) 0xEF;
     private final static byte UTF8_BOM_2 = (byte) 0xBB;
     private final static byte UTF8_BOM_3 = (byte) 0xBF;
-	
+
     public HoconFactory() { this(null); }
-    
+
     public HoconFactory(ObjectCodec oc) {
         super(oc);
     }
@@ -47,8 +46,8 @@ public class HoconFactory extends JsonFactory {
         super(src, oc);
     }
 
-    
-	@Override
+
+    @Override
     public HoconFactory copy()
     {
         _checkInvalidCopy(HoconFactory.class);
@@ -71,28 +70,28 @@ public class HoconFactory extends JsonFactory {
         return new HoconFactory(this, _objectCodec);
     }
 
-    /*                                                                                       
-    /**********************************************************                              
-    /* Versioned                                                                             
-    /**********************************************************                              
+    /*
+    /**********************************************************
+    /* Versioned
+    /**********************************************************
      */
 
 //    @Override
 //    public Version version() {
 //        return PackageVersion.VERSION;
 //    }
-    
+
     /*
     /**********************************************************
     /* Format detection functionality (since 1.8)
     /**********************************************************
      */
-    
+
     @Override
     public String getFormatName() {
         return FORMAT_NAME_HOCON;
     }
-    
+
     /**
      * Sub-classes need to override this method (as of 1.8)
      */
@@ -127,7 +126,7 @@ public class HoconFactory extends JsonFactory {
         }
         return MatchStrength.INCONCLUSIVE;
     }
-    
+
     /*
     /**********************************************************
     /* Configuration, parser settings
@@ -145,27 +144,27 @@ public class HoconFactory extends JsonFactory {
     @SuppressWarnings("resource")
     @Override
     public HoconTreeTraversingParser createParser(String content)
-        throws IOException, JsonParseException
+            throws IOException, JsonParseException
     {
         Reader r = new StringReader(content);
         IOContext ctxt = _createContext(_createContentReference(r), true); // true->own, can close
         return _createParser(_decorate(r, ctxt), ctxt);
     }
-    
+
     @SuppressWarnings("resource")
     @Override
     public HoconTreeTraversingParser createParser(File f)
-        throws IOException, JsonParseException
+            throws IOException, JsonParseException
     {
         // choosing to support hocon include instead of inputDecorator
         Config resolvedConfig = ConfigFactory.parseFile(f).resolve();
         return new HoconTreeTraversingParser(resolvedConfig.root(), _objectCodec);
     }
-    
+
     @SuppressWarnings("resource")
     @Override
     public HoconTreeTraversingParser createParser(URL url)
-        throws IOException, JsonParseException
+            throws IOException, JsonParseException
     {
         // choosing to support hocon include instead of inputDecorator
         Config resolvedConfig = ConfigFactory.parseURL(url).resolve();
@@ -175,7 +174,7 @@ public class HoconFactory extends JsonFactory {
     @SuppressWarnings("resource")
     @Override
     public HoconTreeTraversingParser createParser(InputStream in)
-        throws IOException, JsonParseException
+            throws IOException, JsonParseException
     {
         IOContext ctxt = _createContext(_createContentReference(in), false);
         return _createParser(_decorate(in, ctxt), ctxt);
@@ -184,7 +183,7 @@ public class HoconFactory extends JsonFactory {
     @SuppressWarnings("resource")
     @Override
     public JsonParser createParser(Reader r)
-        throws IOException, JsonParseException
+            throws IOException, JsonParseException
     {
         IOContext ctxt = _createContext(_createContentReference(r), false);
         return _createParser(_decorate(r, ctxt), ctxt);
@@ -193,7 +192,7 @@ public class HoconFactory extends JsonFactory {
     @SuppressWarnings("resource")
     @Override
     public HoconTreeTraversingParser createParser(byte[] data)
-        throws IOException, JsonParseException
+            throws IOException, JsonParseException
     {
         IOContext ctxt = _createContext(_createContentReference(data), true);
         // [JACKSON-512]: allow wrapping with InputDecorator
@@ -209,7 +208,7 @@ public class HoconFactory extends JsonFactory {
     @SuppressWarnings("resource")
     @Override
     public HoconTreeTraversingParser createParser(byte[] data, int offset, int len)
-        throws IOException, JsonParseException
+            throws IOException, JsonParseException
     {
         IOContext ctxt = _createContext(_createContentReference(data, offset, len), true);
         // [JACKSON-512]: allow wrapping with InputDecorator
@@ -232,21 +231,21 @@ public class HoconFactory extends JsonFactory {
     @Override
     public JsonGenerator createGenerator(OutputStream out, JsonEncoding enc) throws IOException
     {
-    	throw new UnsupportedOperationException("Generating HOCON is not supported yet");
+        throw new UnsupportedOperationException("Generating HOCON is not supported yet");
     }
 
     @SuppressWarnings("resource")
     @Override
     public JsonGenerator createGenerator(OutputStream out) throws IOException
     {
-    	throw new UnsupportedOperationException("Generating HOCON is not supported yet");
+        throw new UnsupportedOperationException("Generating HOCON is not supported yet");
     }
-    
+
     @SuppressWarnings("resource")
     @Override
     public JsonGenerator createGenerator(Writer out) throws IOException
     {
-    	throw new UnsupportedOperationException("Generating HOCON is not supported yet");
+        throw new UnsupportedOperationException("Generating HOCON is not supported yet");
     }
     
     /*
@@ -260,7 +259,7 @@ public class HoconFactory extends JsonFactory {
     @SuppressWarnings("resource")
     @Override
     protected HoconTreeTraversingParser _createParser(InputStream in, IOContext ctxt)
-        throws IOException, JsonParseException
+            throws IOException, JsonParseException
     {
         Reader r = _createReader(in, null, ctxt);
         return _createParser(r, ctxt);
@@ -268,7 +267,7 @@ public class HoconFactory extends JsonFactory {
 
     @Override
     protected HoconTreeTraversingParser _createParser(Reader r, IOContext ctxt)
-        throws IOException, JsonParseException
+            throws IOException, JsonParseException
     {
         Config resolvedConfig = ConfigFactory.parseReader(r).resolve();
         return new HoconTreeTraversingParser(resolvedConfig.root(), _objectCodec);
@@ -277,7 +276,7 @@ public class HoconFactory extends JsonFactory {
     @SuppressWarnings("resource")
     @Override
     protected HoconTreeTraversingParser _createParser(byte[] data, int offset, int len, IOContext ctxt)
-        throws IOException, JsonParseException
+            throws IOException, JsonParseException
     {
         Reader r = _createReader(data, offset, len, null, ctxt);
         return _createParser(r, ctxt);
@@ -285,22 +284,22 @@ public class HoconFactory extends JsonFactory {
 
     @Override
     protected JsonGenerator _createGenerator(Writer out, IOContext ctxt)
-        throws IOException
+            throws IOException
     {
-    	throw new UnsupportedOperationException("Generating HOCON is not supported yet");
+        throw new UnsupportedOperationException("Generating HOCON is not supported yet");
     }
 
     @SuppressWarnings("resource")
     @Deprecated
     @Override
     protected JsonGenerator _createUTF8Generator(OutputStream out, IOContext ctxt) throws IOException {
-    	throw new UnsupportedOperationException("Generating HOCON is not supported yet");
+        throw new UnsupportedOperationException("Generating HOCON is not supported yet");
     }
 
     @Override
     protected Writer _createWriter(OutputStream out, JsonEncoding enc, IOContext ctxt) throws IOException
     {
-    	throw new UnsupportedOperationException("Generating HOCON is not supported yet");
+        throw new UnsupportedOperationException("Generating HOCON is not supported yet");
     }
     
     /*
@@ -322,8 +321,7 @@ public class HoconFactory extends JsonFactory {
         return new InputStreamReader(in, enc.getJavaName());
     }
 
-    protected Reader _createReader(byte[] data, int offset, int len,
-            JsonEncoding enc, IOContext ctxt) throws IOException
+    protected Reader _createReader(byte[] data, int offset, int len, JsonEncoding enc, IOContext ctxt) throws IOException
     {
         if (enc == null) {
             enc = JsonEncoding.UTF8;
