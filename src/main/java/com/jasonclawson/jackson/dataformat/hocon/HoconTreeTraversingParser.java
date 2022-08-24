@@ -275,22 +275,22 @@ public class HoconTreeTraversingParser extends ParserMinimalBase {
     @Override
     public String getText()
     {
-        if (_closed) {
+        if (_closed || _currToken == null) {
             return null;
         }
         // need to separate handling a bit...
         switch (_currToken) {
-        case FIELD_NAME:
-            return _nodeCursor.getCurrentName();
-        case VALUE_STRING:
-            return (String) currentNode().unwrapped();
-        case VALUE_NUMBER_INT:
-        case VALUE_NUMBER_FLOAT:
-            return String.valueOf(currentNode().unwrapped());
-        case VALUE_EMBEDDED_OBJECT:
-        	throw new UnsupportedOperationException("VALUE_EMBEDDED_OBJECT is not supported by HOCON");
-        default:
-        	return (_currToken == null) ? null : _currToken.asString();
+            case FIELD_NAME:
+                return _nodeCursor.getCurrentName();
+            case VALUE_STRING:
+                return (String) currentNode().unwrapped();
+            case VALUE_NUMBER_INT:
+            case VALUE_NUMBER_FLOAT:
+                return String.valueOf(currentNode().unwrapped());
+            case VALUE_EMBEDDED_OBJECT:
+                throw new UnsupportedOperationException("VALUE_EMBEDDED_OBJECT is not supported by HOCON");
+            default:
+                return _currToken.asString();
         }
     }
 
