@@ -232,61 +232,6 @@ public class HoconFactory extends JsonFactory {
         }
         return _createParser(data, offset, len, ctxt);
     }
-    
-    /*
-    /**********************************************************
-    /* Overridden parser factory methods (2.0 and prior)
-    /**********************************************************
-     */
-
-    // remove in 2.4
-    @Deprecated
-    @Override
-    public HoconTreeTraversingParser createJsonParser(String content) throws IOException, JsonParseException {
-        return createParser(content);
-    }
-
-    // remove in 2.4
-    @Deprecated
-    @Override
-    public HoconTreeTraversingParser createJsonParser(File f) throws IOException, JsonParseException {
-        return createParser(f);
-    }
-    
-    // remove in 2.4
-    @Deprecated
-    @Override
-    public HoconTreeTraversingParser createJsonParser(URL url) throws IOException, JsonParseException {
-        return createParser(url);
-    }
-
-    // remove in 2.4
-    @Deprecated
-    @Override
-    public HoconTreeTraversingParser createJsonParser(InputStream in) throws IOException, JsonParseException {
-        return createParser(in);
-    }
-
-    // remove in 2.4
-    @Deprecated
-    @Override
-    public JsonParser createJsonParser(Reader r) throws IOException, JsonParseException {
-        return createParser(r);
-    }
-
-    // remove in 2.4
-    @Deprecated
-    @Override
-    public HoconTreeTraversingParser createJsonParser(byte[] data) throws IOException, JsonParseException {
-        return createParser(data);
-    }
-    
-    // remove in 2.4
-    @Deprecated
-    @Override
-    public HoconTreeTraversingParser createJsonParser(byte[] data, int offset, int len) throws IOException, JsonParseException {
-        return createParser(data, offset, len);
-    }
 
     /*
     /**********************************************************
@@ -312,33 +257,6 @@ public class HoconFactory extends JsonFactory {
     @Override
     public JsonGenerator createGenerator(Writer out) throws IOException
     {
-    	throw new UnsupportedOperationException("Generating HOCON is not supported yet");
-    }
-    
-    /*
-    /**********************************************************
-    /* Overridden generator factory methods (2.0 and before)
-    /**********************************************************
-     */
-
-    // remove in 2.4
-    @Deprecated
-    @Override
-    public JsonGenerator createJsonGenerator(OutputStream out, JsonEncoding enc) throws IOException {
-        throw new UnsupportedOperationException("Generating HOCON is not supported yet");
-    }
-
-    // remove in 2.4
-    @Deprecated
-    @Override
-    public JsonGenerator createJsonGenerator(OutputStream out) throws IOException {
-    	throw new UnsupportedOperationException("Generating HOCON is not supported yet");
-    }
-
-    // remove in 2.4
-    @Deprecated
-    @Override
-    public JsonGenerator createJsonGenerator(Writer out) throws IOException {
     	throw new UnsupportedOperationException("Generating HOCON is not supported yet");
     }
     
