@@ -119,7 +119,7 @@ public class HoconGenerator extends GeneratorBase {
         _writer = out;
         _quoteChar = quoteChar;
         _previousVerifyStatus = -1;
-        this.options = ConfigRenderOptions.defaults();
+        this.options = ConfigRenderOptions.defaults().setJson(false);
         _cfgPrettyPrinter = _constructDefaultPrettyPrinter();
         if (Feature.ESCAPE_NON_ASCII.enabledIn(jsonFeatures)) {
             // inlined `setHighestNonEscapedChar()`
@@ -240,14 +240,15 @@ public class HoconGenerator extends GeneratorBase {
         if (!_writeContext.inObject()) {
             _reportError("Current context not Object but " + _writeContext.typeDesc());
         }
+        int entryCount = _writeContext.getEntryCount();
+        _writeContext = _writeContext.clearAndGetParent();
         if (!_writeContext.inRoot() || options.getJson()) { // Omit bracket when in root and json compatibility is disabled.
             if (_cfgPrettyPrinter != null) {
-                _cfgPrettyPrinter.writeEndObject(this, _writeContext.getEntryCount());
+                _cfgPrettyPrinter.writeEndObject(this, entryCount);
             } else {
                 _writer.write('}');
             }
         }
-        _writeContext = _writeContext.clearAndGetParent();
     }
 
     @Override
