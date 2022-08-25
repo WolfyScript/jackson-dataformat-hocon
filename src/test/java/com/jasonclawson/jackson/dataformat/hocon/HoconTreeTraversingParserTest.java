@@ -15,11 +15,11 @@ import java.util.Scanner;
 
 public class HoconTreeTraversingParserTest {
 
-	private static URL url(String name) {
+	static URL url(String name) {
 		return HoconTreeTraversingParserTest.class.getResource(name);
 	}
 
-	private static InputStream stream(String name) throws IOException {
+	static InputStream stream(String name) throws IOException {
 		return url(name).openStream();
 	}
 
