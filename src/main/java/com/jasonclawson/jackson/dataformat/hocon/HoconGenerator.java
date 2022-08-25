@@ -252,8 +252,34 @@ public class HoconGenerator extends GeneratorBase {
 
     @Override
     public void writeFieldName(String name) throws IOException {
-        if (_writeContext.writeFieldName(name) == JsonWriteContext.STATUS_EXPECT_VALUE) {
+        int status = _writeContext.writeFieldName(name);
+        if (status == JsonWriteContext.STATUS_EXPECT_VALUE) {
             _reportError("Cannot write a field name, expecting a value");
+        }
+        _writeFieldName(name, (status == JsonWriteContext.STATUS_OK_AFTER_COMMA));
+    }
+
+    @Override
+    public void writeFieldName(SerializableString name) throws IOException {
+        int status = _writeContext.writeFieldName(name.getValue());
+        if (status == JsonWriteContext.STATUS_EXPECT_VALUE) {
+            _reportError("Cannot write a field name, expecting a value");
+        }
+        _writeFieldName(name.getValue(), (status == JsonWriteContext.STATUS_OK_AFTER_COMMA));
+    }
+
+    protected final void _writeFieldName(String name, boolean commaBefore) throws IOException {
+        if (_cfgPrettyPrinter != null) {
+            if (commaBefore) {
+                _cfgPrettyPrinter.writeObjectEntrySeparator(this);
+            } else {
+                _cfgPrettyPrinter.beforeObjectEntries(this);
+            }
+            _writeString(name);
+            return;
+        }
+        if (commaBefore) {
+            _writer.write(',');
         }
         _writeString(name);
     }
