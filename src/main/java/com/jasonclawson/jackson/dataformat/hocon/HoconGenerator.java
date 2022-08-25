@@ -120,17 +120,10 @@ public class HoconGenerator extends GeneratorBase {
         _quoteChar = quoteChar;
         _previousVerifyStatus = -1;
         this.options = ConfigRenderOptions.defaults().setJson(false);
-        _cfgPrettyPrinter = _constructDefaultPrettyPrinter();
         if (Feature.ESCAPE_NON_ASCII.enabledIn(jsonFeatures)) {
             // inlined `setHighestNonEscapedChar()`
             _maximumNonEscapedChar = 127;
         }
-    }
-
-    @Override
-    public JsonGenerator setPrettyPrinter(PrettyPrinter pp) {
-        if (pp == null) throw new IllegalArgumentException("Hocon requires a non null PrettyPrinter!");
-        return super.setPrettyPrinter(pp);
     }
 
     @Override
@@ -149,12 +142,12 @@ public class HoconGenerator extends GeneratorBase {
     }
 
     @Override
-    public JsonGenerator enable(Feature f) {
+    public HoconGenerator enable(Feature f) {
         return null;
     }
 
     @Override
-    public JsonGenerator disable(Feature f) {
+    public HoconGenerator disable(Feature f) {
         return null;
     }
 
@@ -164,8 +157,9 @@ public class HoconGenerator extends GeneratorBase {
     }
 
     @Override
-    public JsonGenerator useDefaultPrettyPrinter() {
-        return null;
+    public HoconGenerator useDefaultPrettyPrinter() {
+        this.setPrettyPrinter(_constructDefaultPrettyPrinter());
+        return this;
     }
 
     @Override
