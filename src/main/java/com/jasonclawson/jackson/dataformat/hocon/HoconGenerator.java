@@ -477,7 +477,7 @@ public class HoconGenerator extends GeneratorBase {
     }
 
     protected void _writeValueSeparator(boolean isObjectValue) throws IOException {
-        if (_previousVerifyStatus == -1) {
+        if (_previousVerifyStatus == -1) { // Make sure the verify method was called beforehand!
             _throwInternal();
             return;
         }
@@ -515,6 +515,8 @@ public class HoconGenerator extends GeneratorBase {
             case JsonWriteContext.STATUS_OK_AFTER_COLON:
                 if (!isObjectValue || options.getJson()) { // can be omitted for objects (only when json is disabled!)
                     _cfgPrettyPrinter.writeObjectFieldValueSeparator(this);
+                } else {
+                    _writer.write(' ');
                 }
                 break; // Nothing to write otherwise
             case JsonWriteContext.STATUS_OK_AFTER_SPACE:
