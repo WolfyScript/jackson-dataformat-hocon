@@ -22,11 +22,6 @@ public class HoconGenerator extends GeneratorBase {
     public enum Feature implements FormatFeature {
 
         /**
-         * Uses the equal sign (=) instead of the column (:) to separate
-         * field names and values.
-         */
-        USE_EQUAL_SIGN_SEPARATOR(false),
-        /**
          * Omits the separator before object start bracket.
          */
         OMIT_SEPARATOR_FOR_OBJECTS(false),
@@ -135,7 +130,6 @@ public class HoconGenerator extends GeneratorBase {
         _quoteChar = quoteChar;
         _previousVerifyStatus = -1;
         _hoconFeatures = hoconFeatures;
-        _fieldValueSeparator = Feature.USE_EQUAL_SIGN_SEPARATOR.enabledIn(_hoconFeatures) ? '=' : ':';
     }
 
     @Override
@@ -156,7 +150,6 @@ public class HoconGenerator extends GeneratorBase {
     @Override
     public HoconGenerator overrideFormatFeatures(int values, int mask) {
         _hoconFeatures = (_hoconFeatures & ~mask) | (values & mask);
-        _fieldValueSeparator = Feature.USE_EQUAL_SIGN_SEPARATOR.enabledIn(_hoconFeatures) ? '=' : ':';
         return this;
     }
 
