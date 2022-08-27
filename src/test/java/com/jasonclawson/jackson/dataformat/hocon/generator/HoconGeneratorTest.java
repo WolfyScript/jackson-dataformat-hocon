@@ -34,35 +34,35 @@ public class HoconGeneratorTest {
     public void testFeatureOmitRootBrackets() throws IOException, URISyntaxException {
         ObjectMapper mapper = new ObjectMapper(new HoconFactory().enable(HoconGenerator.Feature.OMIT_ROOT_OBJECT_BRACKETS));
         String config = mapper.writer(new DefaultPrettyPrinter()).writeValueAsString(createConfiguration());
-        Assert.assertEquals("", getFileContent(url("test_omit_root_brackets.conf")), config);
+        Assert.assertEquals(getFileContent(url("test_omit_root_brackets.conf")), config);
     }
 
     @Test
     public void testFeatureOmitObjectValue() throws IOException, URISyntaxException {
         ObjectMapper mapper = new ObjectMapper(new HoconFactory().enable(HoconGenerator.Feature.OMIT_OBJECT_VALUE_SEPARATOR));
         String config = mapper.writer(new DefaultPrettyPrinter()).writeValueAsString(createConfiguration());
-        Assert.assertEquals("", getFileContent(url("test_omit_object_value_separator.conf")), config);
+        Assert.assertEquals(getFileContent(url("test_omit_object_value_separator.conf")), config);
     }
 
     @Test
     public void testFeatureUnquoteText() throws IOException, URISyntaxException {
         ObjectMapper mapper = new ObjectMapper(new HoconFactory().enable(HoconGenerator.Feature.UNQUOTE_TEXT_IF_POSSIBLE));
         String config = mapper.writer(new DefaultPrettyPrinter()).writeValueAsString(createConfiguration());
-        Assert.assertEquals("", getFileContent(url("test_unquote_text.conf")), config);
+        Assert.assertEquals(getFileContent(url("test_unquote_text.conf")), config);
     }
 
     @Test
     public void testFeatureAll() throws IOException, URISyntaxException {
         ObjectMapper mapper = new ObjectMapper(new HoconFactory().enable(HoconGenerator.Feature.UNQUOTE_TEXT_IF_POSSIBLE).enable(HoconGenerator.Feature.OMIT_ROOT_OBJECT_BRACKETS).enable(HoconGenerator.Feature.OMIT_OBJECT_VALUE_SEPARATOR));
         String config = mapper.writer(new DefaultPrettyPrinter()).writeValueAsString(createConfiguration());
-        Assert.assertEquals("", getFileContent(url("test_unquote_text.conf")), config);
+        Assert.assertEquals(getFileContent(url("test_features_all.conf")), config);
     }
 
     @Test
     public void testFeatureUseEqualSign() throws IOException, URISyntaxException {
         ObjectMapper mapper = new ObjectMapper(new HoconFactory());
         String config = mapper.writer(new DefaultPrettyPrinter().withSeparators(Separators.createDefaultInstance().withObjectFieldValueSeparator('='))).writeValueAsString(createConfiguration());
-        Assert.assertEquals("", getFileContent(url("test_equal_sign_separator.conf")), config);
+        Assert.assertEquals(getFileContent(url("test_equal_sign_separator.conf")), config);
     }
 
 }
