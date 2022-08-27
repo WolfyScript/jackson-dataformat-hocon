@@ -24,7 +24,7 @@ public class HoconGenerator extends GeneratorBase {
         /**
          * Omits the separator before object start bracket.
          */
-        OMIT_SEPARATOR_FOR_OBJECTS(false),
+        OMIT_OBJECT_VALUE_SEPARATOR(false),
         /**
          * Omits the root object brackets.
          */
@@ -258,7 +258,7 @@ public class HoconGenerator extends GeneratorBase {
         if (_cfgPrettyPrinter != null) {
             if (commaBefore) {
                 _cfgPrettyPrinter.writeObjectEntrySeparator(this);
-            } else {
+            } else if (!_writeContext.inRoot() && _writeContext.inObject() && (!_writeContext.getParent().inRoot() || !Feature.OMIT_ROOT_OBJECT_BRACKETS.enabledIn(_hoconFeatures))) { // Omit indentation when it is an object, the parent is in root and the root brackets are omitted.
                 _cfgPrettyPrinter.beforeObjectEntries(this);
             }
             _writeString(name);
@@ -292,7 +292,7 @@ public class HoconGenerator extends GeneratorBase {
      */
     protected void _writeString(String text) throws IOException {
         String renderedKey;
-        if (Feature.UNQUOTE_TEXT_IF_POSSIBLE.enabledIn(_hoconFeatures)) {
+        if (!Feature.UNQUOTE_TEXT_IF_POSSIBLE.enabledIn(_hoconFeatures)) {
             renderedKey = ConfigImplUtil.renderJsonString(text);
         } else {
             renderedKey = _renderStringUnquotedIfPossible(text);
@@ -481,7 +481,7 @@ public class HoconGenerator extends GeneratorBase {
                 _writer.write(',');
                 break;
             case JsonWriteContext.STATUS_OK_AFTER_COLON:
-                if (!isObjectValue || !Feature.OMIT_SEPARATOR_FOR_OBJECTS.enabledIn(_hoconFeatures)) { // can be omitted for objects (only when json is disabled!)
+                if (!isObjectValue || !Feature.OMIT_OBJECT_VALUE_SEPARATOR.enabledIn(_hoconFeatures)) { // can be omitted for objects (only when json is disabled!)
                     _writer.write(':');
                 }
                 return; // Nothing to write otherwise
@@ -498,7 +498,7 @@ public class HoconGenerator extends GeneratorBase {
                 _cfgPrettyPrinter.writeArrayValueSeparator(this);
                 break;
             case JsonWriteContext.STATUS_OK_AFTER_COLON:
-                if (!isObjectValue || !Feature.OMIT_SEPARATOR_FOR_OBJECTS.enabledIn(_hoconFeatures)) { // can be omitted for objects (only when json is disabled!)
+                if (!isObjectValue || !Feature.OMIT_OBJECT_VALUE_SEPARATOR.enabledIn(_hoconFeatures)) { // can be omitted for objects (only when json is disabled!)
                     _cfgPrettyPrinter.writeObjectFieldValueSeparator(this);
                 } else {
                     _writer.write(' ');

@@ -349,7 +349,7 @@ public class HoconFactory extends JsonFactory {
 
     @Override
     protected HoconGenerator _createGenerator(Writer out, IOContext ctxt) throws IOException {
-        return new HoconGenerator(ctxt, _quoteChar, _generatorFeatures, _hoconGeneratorFeatures, _objectCodec, out);
+        return new HoconGenerator(ctxt, _quoteChar, _hoconGeneratorFeatures, _generatorFeatures, _objectCodec, out);
     }
 
     @SuppressWarnings("resource")
