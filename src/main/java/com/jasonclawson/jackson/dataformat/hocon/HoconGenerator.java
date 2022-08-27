@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.io.Writer;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.Arrays;
 
 /**
  * This is an experimental implementation of a Hocon Generator<br>
@@ -403,7 +404,16 @@ public class HoconGenerator extends GeneratorBase {
 
     @Override
     public void writeBinary(Base64Variant bv, byte[] data, int offset, int len) throws IOException {
-        //TODO
+        if (data == null) {
+            writeNull();
+            return;
+        }
+        _verifyValueWrite(WRITE_BINARY);
+        _writeValueSeparator(false);
+        if (offset > 0 || (offset+len) != data.length) {
+            data = Arrays.copyOfRange(data, offset, offset+len);
+        }
+        _writeString(bv.encode(data));
     }
 
     @Override
