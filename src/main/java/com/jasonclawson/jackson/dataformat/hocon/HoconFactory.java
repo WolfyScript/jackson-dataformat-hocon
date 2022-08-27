@@ -1,5 +1,6 @@
 package com.jasonclawson.jackson.dataformat.hocon;
 
+import com.fasterxml.jackson.core.FormatFeature;
 import com.fasterxml.jackson.core.JsonEncoding;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -39,6 +40,16 @@ public class HoconFactory extends JsonFactory {
     private final static byte UTF8_BOM_1 = (byte) 0xEF;
     private final static byte UTF8_BOM_2 = (byte) 0xBB;
     private final static byte UTF8_BOM_3 = (byte) 0xBF;
+
+    protected static final int DEFAULT_HOCON_GENERATOR_FEATURES = HoconGenerator.Feature.collectDefaults();
+
+    /*
+    /**********************************************************
+    /* Configuration
+    /**********************************************************
+     */
+
+    protected int _hoconGeneratorFeatures = DEFAULT_HOCON_GENERATOR_FEATURES;
 
     public HoconFactory() {
         this(null);
@@ -85,6 +96,17 @@ public class HoconFactory extends JsonFactory {
 //    public Version version() {
 //        return PackageVersion.VERSION;
 //    }
+
+    /*
+    /**********************************************************
+    /* Capability introspection
+    /**********************************************************
+     */
+
+    @Override
+    public Class<? extends FormatFeature> getFormatWriteFeatureType() {
+        return HoconGenerator.Feature.class;
+    }
 
     /*
     /**********************************************************
@@ -137,7 +159,54 @@ public class HoconFactory extends JsonFactory {
     /**********************************************************
      */
 
+    /*
+    /**********************************************************
+    /* Configuration, generator settings
+    /**********************************************************
+     */
 
+    /**
+     * Method for enabling or disabling specified generator features
+     * (check {@link HoconGenerator.Feature} for list of features)
+     */
+    public final HoconFactory configure(HoconGenerator.Feature f, boolean state) {
+        if (state) {
+            enable(f);
+        } else {
+            disable(f);
+        }
+        return this;
+    }
+
+    /**
+     * Method for enabling specified generator features
+     * (check {@link HoconGenerator.Feature} for list of features)
+     */
+    public HoconFactory enable(HoconGenerator.Feature f) {
+        _hoconGeneratorFeatures |= f.getMask();
+        return this;
+    }
+
+    /**
+     * Method for disabling specified generator features
+     * (check {@link HoconGenerator.Feature} for list of features)
+     */
+    public HoconFactory disable(HoconGenerator.Feature f) {
+        _hoconGeneratorFeatures &= ~f.getMask();
+        return this;
+    }
+
+    /**
+     * Check whether specified generator feature is enabled.
+     */
+    public final boolean isEnabled(HoconGenerator.Feature f) {
+        return (_hoconGeneratorFeatures & f.getMask()) != 0;
+    }
+
+    @Override
+    public int getFormatGeneratorFeatures() {
+        return _hoconGeneratorFeatures;
+    }
 
     /*
     /**********************************************************
@@ -231,8 +300,7 @@ public class HoconFactory extends JsonFactory {
     public JsonGenerator createGenerator(OutputStream out) throws IOException {
         // false -> we won't manage the stream unless explicitly directed to
         IOContext ctxt = _createContext(_createContentReference(out), false);
-        return _createGenerator(_createWriter(_decorate(out, ctxt),
-                JsonEncoding.UTF8, ctxt), ctxt);
+        return _createGenerator(_createWriter(_decorate(out, ctxt), JsonEncoding.UTF8, ctxt), ctxt);
     }
 
     @SuppressWarnings("resource")
@@ -281,7 +349,7 @@ public class HoconFactory extends JsonFactory {
 
     @Override
     protected HoconGenerator _createGenerator(Writer out, IOContext ctxt) throws IOException {
-        return new HoconGenerator(ctxt, _quoteChar, _generatorFeatures, _objectCodec, out);
+        return new HoconGenerator(ctxt, _quoteChar, _generatorFeatures, _hoconGeneratorFeatures, _objectCodec, out);
     }
 
     @SuppressWarnings("resource")

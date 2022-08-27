@@ -1,20 +1,13 @@
 package com.jasonclawson.jackson.dataformat.hocon;
 
 import com.fasterxml.jackson.core.Base64Variant;
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonStreamContext;
+import com.fasterxml.jackson.core.FormatFeature;
 import com.fasterxml.jackson.core.ObjectCodec;
-import com.fasterxml.jackson.core.PrettyPrinter;
 import com.fasterxml.jackson.core.SerializableString;
-import com.fasterxml.jackson.core.StreamWriteCapability;
 import com.fasterxml.jackson.core.base.GeneratorBase;
-import com.fasterxml.jackson.core.io.CharTypes;
-import com.fasterxml.jackson.core.io.CharacterEscapes;
 import com.fasterxml.jackson.core.io.IOContext;
 import com.fasterxml.jackson.core.json.JsonWriteContext;
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
-import com.fasterxml.jackson.core.util.JacksonFeatureSet;
-import com.typesafe.config.ConfigRenderOptions;
 import com.typesafe.config.impl.ConfigImplUtil;
 import java.io.IOException;
 import java.io.Writer;
@@ -26,25 +19,62 @@ import java.math.BigInteger;
  */
 public class HoconGenerator extends GeneratorBase {
 
+    public enum Feature implements FormatFeature {
+
+        /**
+         * Uses the equal sign (=) instead of the column (:) to separate
+         * field names and values.
+         */
+        USE_EQUAL_SIGN_SEPARATOR(false),
+        /**
+         * Omits the separator before object start bracket.
+         */
+        OMIT_SEPARATOR_FOR_OBJECTS(false),
+        /**
+         * Omits the root object brackets.
+         */
+        OMIT_ROOT_OBJECT_BRACKETS(false),
+        /**
+         * Writes Field Names and String values unquoted if possible.
+         */
+        UNQUOTE_TEXT_IF_POSSIBLE(false);
+
+        protected final boolean _defaultState;
+        protected final int _mask;
+
+        /**
+         * Method that calculates bit set (flags) of all features that
+         * are enabled by default.
+         */
+        public static int collectDefaults()
+        {
+            int flags = 0;
+            for (Feature f : values()) {
+                if (f.enabledByDefault()) {
+                    flags |= f.getMask();
+                }
+            }
+            return flags;
+        }
+
+        Feature(boolean defaultState) {
+            _defaultState = defaultState;
+            _mask = (1 << ordinal());
+        }
+
+        @Override
+        public boolean enabledByDefault() { return _defaultState; }
+        @Override
+        public boolean enabledIn(int flags) { return (flags & _mask) != 0; }
+        @Override
+        public int getMask() { return _mask; }
+    }
+
     /*
     /**********************************************************
     /* Constants
     /**********************************************************
      */
-
-    /**
-     * This is the default set of escape codes, over 7-bit ASCII range
-     * (first 128 character codes), used for single-byte UTF-8 characters.
-     */
-    protected final static int[] sOutputEscapes = CharTypes.get7BitOutputEscapes();
-
-    /**
-     * Default capabilities for JSON generator implementations which do not
-     * different from "general textual" defaults
-     *
-     * @since 2.12
-     */
-    protected final static JacksonFeatureSet<StreamWriteCapability> JSON_WRITE_CAPABILITIES = DEFAULT_TEXTUAL_WRITE_CAPABILITIES;
 
     protected final static String WRITE_ARRAY = "write an array";
     protected final static String WRITE_OBJECT = "write an object";
@@ -56,44 +86,19 @@ public class HoconGenerator extends GeneratorBase {
      */
 
     protected final IOContext _ioContext;
-
-    /*
-    /**********************************************************
-    /* Configuration, output escaping
-    /**********************************************************
-     */
-
-    /**
-     * Currently active set of output escape code definitions (whether
-     * and how to escape or not) for 7-bit ASCII range (first 128
-     * character codes). Defined separately to make potentially
-     * customizable
-     */
-    protected int[] _outputEscapes = sOutputEscapes;
-
-    /**
-     * Value between 128 (0x80) and 65535 (0xFFFF) that indicates highest
-     * Unicode code point that will not need escaping; or 0 to indicate
-     * that all characters can be represented without escaping.
-     * Typically used to force escaping of some portion of character set;
-     * for example to always escape non-ASCII characters (if value was 127).
-     * <p>
-     * NOTE: not all sub-classes make use of this setting.
-     */
-    protected int _maximumNonEscapedChar;
-
-    /**
-     * Definition of custom character escapes to use for generators created
-     * by this factory, if any. If null, standard data format specific
-     * escapes are used.
-     */
-    protected CharacterEscapes _characterEscapes;
+    protected Writer _writer;
 
     /**
      * Character used for quoting JSON Object property names
      * and String values.
      */
     protected char _quoteChar;
+
+    /**
+     * Character to separate field and values.
+     * Can either be an equal sign or column.
+     */
+    protected char _fieldValueSeparator;
 
     /*
     /**********************************************************
@@ -106,29 +111,31 @@ public class HoconGenerator extends GeneratorBase {
      *
      * @since 2.1
      */
-    protected SerializableString _rootValueSeparator
-            = DefaultPrettyPrinter.DEFAULT_ROOT_VALUE_SEPARATOR;
+    protected SerializableString _rootValueSeparator = DefaultPrettyPrinter.DEFAULT_ROOT_VALUE_SEPARATOR;
 
-    private ConfigRenderOptions options;
-    protected Writer _writer;
+    protected int _hoconFeatures;
+
+    /*
+    /**********************************************************************
+    /* Output state
+    /**********************************************************************
+     */
+
+    /**
+     * Caches the last value write status from {@link #_verifyValueWrite(String)}.
+     * Used to write the field-name/value separator and optionally omit it before object values.
+     */
     private int _previousVerifyStatus;
 
-    public HoconGenerator(IOContext ctxt, char quoteChar, int jsonFeatures, ObjectCodec codec, Writer out) {
+
+    public HoconGenerator(IOContext ctxt, char quoteChar, int hoconFeatures, int jsonFeatures, ObjectCodec codec, Writer out) {
         super(jsonFeatures, codec);
         _ioContext = ctxt;
         _writer = out;
         _quoteChar = quoteChar;
         _previousVerifyStatus = -1;
-        this.options = ConfigRenderOptions.defaults().setJson(false);
-        if (Feature.ESCAPE_NON_ASCII.enabledIn(jsonFeatures)) {
-            // inlined `setHighestNonEscapedChar()`
-            _maximumNonEscapedChar = 127;
-        }
-    }
-
-    @Override
-    public JsonStreamContext getOutputContext() {
-        return null;
+        _hoconFeatures = hoconFeatures;
+        _fieldValueSeparator = Feature.USE_EQUAL_SIGN_SEPARATOR.enabledIn(_hoconFeatures) ? '=' : ':';
     }
 
     @Override
@@ -142,23 +149,14 @@ public class HoconGenerator extends GeneratorBase {
     }
 
     @Override
-    public HoconGenerator enable(Feature f) {
-        return null;
+    public int getFormatFeatures() {
+        return _hoconFeatures;
     }
 
     @Override
-    public HoconGenerator disable(Feature f) {
-        return null;
-    }
-
-    @Override
-    public int getFeatureMask() {
-        return 0;
-    }
-
-    @Override
-    public HoconGenerator useDefaultPrettyPrinter() {
-        this.setPrettyPrinter(_constructDefaultPrettyPrinter());
+    public HoconGenerator overrideFormatFeatures(int values, int mask) {
+        _hoconFeatures = (_hoconFeatures & ~mask) | (values & mask);
+        _fieldValueSeparator = Feature.USE_EQUAL_SIGN_SEPARATOR.enabledIn(_hoconFeatures) ? '=' : ':';
         return this;
     }
 
@@ -203,7 +201,7 @@ public class HoconGenerator extends GeneratorBase {
     public void writeStartObject() throws IOException {
         _verifyValueWrite(WRITE_OBJECT);
         _writeValueSeparator(true);
-        boolean outerBrackets = !_writeContext.inRoot() || options.getJson();
+        boolean outerBrackets = !_writeContext.inRoot() || !Feature.OMIT_ROOT_OBJECT_BRACKETS.enabledIn(_hoconFeatures);
         _writeContext = _writeContext.createChildObjectContext();
         if (outerBrackets) { // Omit bracket when in root and json compatibility is disabled.
             if (_cfgPrettyPrinter != null) {
@@ -218,7 +216,7 @@ public class HoconGenerator extends GeneratorBase {
     public void writeStartObject(Object forValue) throws IOException {
         _verifyValueWrite(WRITE_OBJECT);
         _writeValueSeparator(true);
-        boolean outerBrackets = !_writeContext.inRoot() || options.getJson();
+        boolean outerBrackets = !_writeContext.inRoot() || !Feature.OMIT_ROOT_OBJECT_BRACKETS.enabledIn(_hoconFeatures);
         _writeContext = _writeContext.createChildObjectContext(forValue);
         if (outerBrackets) {
             if (_cfgPrettyPrinter != null) {
@@ -236,7 +234,7 @@ public class HoconGenerator extends GeneratorBase {
         }
         int entryCount = _writeContext.getEntryCount();
         _writeContext = _writeContext.clearAndGetParent();
-        if (!_writeContext.inRoot() || options.getJson()) { // Omit bracket when in root and json compatibility is disabled.
+        if (!_writeContext.inRoot() || !Feature.OMIT_ROOT_OBJECT_BRACKETS.enabledIn(_hoconFeatures)) { // Omit bracket when in root and json compatibility is disabled.
             if (_cfgPrettyPrinter != null) {
                 _cfgPrettyPrinter.writeEndObject(this, entryCount);
             } else {
@@ -301,7 +299,7 @@ public class HoconGenerator extends GeneratorBase {
      */
     protected void _writeString(String text) throws IOException {
         String renderedKey;
-        if (options.getJson()) {
+        if (Feature.UNQUOTE_TEXT_IF_POSSIBLE.enabledIn(_hoconFeatures)) {
             renderedKey = ConfigImplUtil.renderJsonString(text);
         } else {
             renderedKey = _renderStringUnquotedIfPossible(text);
@@ -412,7 +410,7 @@ public class HoconGenerator extends GeneratorBase {
 
     @Override
     public void writeBinary(Base64Variant bv, byte[] data, int offset, int len) throws IOException {
-
+        //TODO
     }
 
     @Override
@@ -490,7 +488,7 @@ public class HoconGenerator extends GeneratorBase {
                 _writer.write(',');
                 break;
             case JsonWriteContext.STATUS_OK_AFTER_COLON:
-                if (!isObjectValue || options.getJson()) { // can be omitted for objects (only when json is disabled!)
+                if (!isObjectValue || !Feature.OMIT_SEPARATOR_FOR_OBJECTS.enabledIn(_hoconFeatures)) { // can be omitted for objects (only when json is disabled!)
                     _writer.write(':');
                 }
                 return; // Nothing to write otherwise
@@ -507,7 +505,7 @@ public class HoconGenerator extends GeneratorBase {
                 _cfgPrettyPrinter.writeArrayValueSeparator(this);
                 break;
             case JsonWriteContext.STATUS_OK_AFTER_COLON:
-                if (!isObjectValue || options.getJson()) { // can be omitted for objects (only when json is disabled!)
+                if (!isObjectValue || !Feature.OMIT_SEPARATOR_FOR_OBJECTS.enabledIn(_hoconFeatures)) { // can be omitted for objects (only when json is disabled!)
                     _cfgPrettyPrinter.writeObjectFieldValueSeparator(this);
                 } else {
                     _writer.write(' ');
