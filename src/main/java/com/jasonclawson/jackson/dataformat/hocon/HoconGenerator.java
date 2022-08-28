@@ -211,7 +211,7 @@ public class HoconGenerator extends GeneratorBase {
     public void writeStartObject() throws IOException {
         _verifyValueWrite(WRITE_OBJECT);
         _writeValueSeparator(true);
-        boolean outerBrackets = !_writeContext.inRoot() || !Feature.OMIT_ROOT_OBJECT_BRACKETS.enabledIn(_hoconFeatures);
+        boolean outerBrackets = !_writeContext.inRoot() || !Feature.OMIT_ROOT_OBJECT_BRACKETS.enabledIn(_hoconFeatures); // Need to check for the root before we update the context
         _writeContext = _writeContext.createChildObjectContext();
         if (outerBrackets) { // Omit bracket when in root and json compatibility is disabled.
             if (_cfgPrettyPrinter != null) {
@@ -271,11 +271,19 @@ public class HoconGenerator extends GeneratorBase {
         _writeFieldName(name.getValue(), (status == JsonWriteContext.STATUS_OK_AFTER_COMMA));
     }
 
+    /**
+     * Internal method that writes a field name to the config
+     *
+     * @param name The name of the field
+     * @param commaBefore If a comma should precede the field name
+     * @throws IOException If an I/O error occurred
+     */
     protected final void _writeFieldName(String name, boolean commaBefore) throws IOException {
         if (_cfgPrettyPrinter != null) {
             if (commaBefore) {
                 _cfgPrettyPrinter.writeObjectEntrySeparator(this);
-            } else if (!_writeContext.inRoot() && _writeContext.inObject() && (!_writeContext.getParent().inRoot() || !Feature.OMIT_ROOT_OBJECT_BRACKETS.enabledIn(_hoconFeatures))) { // Omit indentation when it is an object, the parent is in root and the root brackets are omitted.
+            } else if (!_writeContext.inRoot() && _writeContext.inObject() && (!_writeContext.getParent().inRoot() || !Feature.OMIT_ROOT_OBJECT_BRACKETS.enabledIn(_hoconFeatures))) {
+                // Omit indentation when it is an object, the parent is in root and the root brackets are omitted.
                 _cfgPrettyPrinter.beforeObjectEntries(this);
             }
             _writeString(name);
@@ -302,10 +310,11 @@ public class HoconGenerator extends GeneratorBase {
     }
 
     /**
-     * Internal method to write a String
+     * Internal method to write a String.
+     * If enabled and possible it will write the value without quotes; otherwise with quotes.
      *
-     * @param text the text to write
-     * @throws IOException
+     * @param text The text value to write
+     * @throws IOException If an I/O error occurs
      */
     protected void _writeString(String text) throws IOException {
         String renderedKey;
@@ -487,6 +496,15 @@ public class HoconGenerator extends GeneratorBase {
         }
     }
 
+    /**
+     * Uses the cached verify status from {@link #_verifyValueWrite(String)} to write the proper value separator.
+     * This is required for the omit feature of object value separators.<br>
+     * <br>
+     * This method should only be called right after {@link #_verifyValueWrite(String)}.
+     *
+     * @param isObjectValue If the value is an Object
+     * @throws IOException If an I/O error occurred
+     */
     protected void _writeValueSeparator(boolean isObjectValue) throws IOException {
         if (_previousVerifyStatus == -1) { // Make sure the verify method was called beforehand!
             _throwInternal();
@@ -518,7 +536,7 @@ public class HoconGenerator extends GeneratorBase {
         }
     }
 
-    protected void _writePPValueSeparatorFor(boolean isObjectValue, int verifyStatus) throws IOException {
+    private void _writePPValueSeparatorFor(boolean isObjectValue, int verifyStatus) throws IOException {
         switch (verifyStatus) {
             case JsonWriteContext.STATUS_OK_AFTER_COMMA: // array
                 _cfgPrettyPrinter.writeArrayValueSeparator(this);
@@ -546,7 +564,6 @@ public class HoconGenerator extends GeneratorBase {
     }
 
     protected void _reportCantWriteValueExpectName(String typeMsg) throws IOException {
-        _reportError(String.format("Can not %s, expecting field name (context: %s)",
-                typeMsg, _writeContext.typeDesc()));
+        _reportError(String.format("Can not %s, expecting field name (context: %s)", typeMsg, _writeContext.typeDesc()));
     }
 }
