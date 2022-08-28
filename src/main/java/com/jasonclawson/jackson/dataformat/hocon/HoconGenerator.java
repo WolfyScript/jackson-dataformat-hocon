@@ -2,6 +2,7 @@ package com.jasonclawson.jackson.dataformat.hocon;
 
 import com.fasterxml.jackson.core.Base64Variant;
 import com.fasterxml.jackson.core.FormatFeature;
+import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.ObjectCodec;
 import com.fasterxml.jackson.core.SerializableString;
 import com.fasterxml.jackson.core.base.GeneratorBase;
@@ -135,7 +136,22 @@ public class HoconGenerator extends GeneratorBase {
 
     @Override
     public void flush() throws IOException {
-        _writer.flush();
+        if (isEnabled(JsonGenerator.Feature.FLUSH_PASSED_TO_STREAM)) {
+            _writer.flush();
+        }
+    }
+
+    @Override
+    public void close() throws IOException {
+        super.close();
+        if (_writer != null) {
+            if (_ioContext.isResourceManaged() || isEnabled(JsonGenerator.Feature.AUTO_CLOSE_TARGET)) {
+                _writer.close();
+            } else if (isEnabled(JsonGenerator.Feature.FLUSH_PASSED_TO_STREAM)) {
+                // If we can't close it, we should at least flush
+                _writer.flush();
+            }
+        }
     }
 
     @Override
