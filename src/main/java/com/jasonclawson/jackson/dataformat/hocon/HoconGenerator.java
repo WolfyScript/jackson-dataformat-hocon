@@ -24,17 +24,35 @@ public class HoconGenerator extends GeneratorBase {
     public enum Feature implements FormatFeature {
 
         /**
-         * Omits the separator before object start bracket.
+         * Writes the separator before object start brackets.<br>
+         * If disabled, omits the separator before object start brackets.<br>
+         * <br>
+         * If a key is followed by {, the : or = may be omitted. So <pre>"foo" {}</pre> means <pre>"foo" : {}</pre>
          */
-        OMIT_OBJECT_VALUE_SEPARATOR(false),
+        OBJECT_VALUE_SEPARATOR(true),
         /**
-         * Omits the root object brackets.
+         * Writes the brackets for the root object.<br>
+         * If disabled, omits the root object brackets.<br>
+         * <br>
+         * In HOCON, if the file does not begin with a square bracket or curly brace, it is parsed as if it were enclosed with {} curly braces.<br>
+         * <br>
+         * A HOCON file is invalid if it omits the opening { but still has a closing }; the curly braces must be balanced.<br>
+         * <a href="https://github.com/lightbend/config/blob/main/HOCON.md#omit-root-braces">More info</a>
          */
-        OMIT_ROOT_OBJECT_BRACKETS(false),
+        ROOT_OBJECT_BRACKETS(true),
         /**
-         * Writes Field Names and String values unquoted if possible.
+         * Always write field names and String values with quotes.<br>
+         * If disabled, writes them unquoted when possible.<br>
+         * <br>
+         * A String can be unquoted if:
+         * <ul>
+         *     <li>it does not contain "forbidden characters": '$', '"', '{', '}', '[', ']', ':', '=', ',', '+', '#', '`', '^', '?', '!', '@', '*', '&', '' (backslash), or whitespace.</li>
+         *     <li>it does not contain the two-character string "//" (which starts a comment)</li>
+         *     <li>its initial characters do not parse as true, false, null, or a number.</li>
+         * </ul>
+         * <a href="https://github.com/lightbend/config/blob/main/HOCON.md#unquoted-strings">More info</a>
          */
-        UNQUOTE_TEXT_IF_POSSIBLE(false);
+        ALWAYS_QUOTE_STRINGS(true);
 
         protected final boolean _defaultState;
         protected final int _mask;
@@ -211,7 +229,7 @@ public class HoconGenerator extends GeneratorBase {
     public void writeStartObject() throws IOException {
         _verifyValueWrite(WRITE_OBJECT);
         _writeValueSeparator(true);
-        boolean outerBrackets = !_writeContext.inRoot() || !Feature.OMIT_ROOT_OBJECT_BRACKETS.enabledIn(_hoconFeatures); // Need to check for the root before we update the context
+        boolean outerBrackets = !_writeContext.inRoot() || Feature.ROOT_OBJECT_BRACKETS.enabledIn(_hoconFeatures); // Need to check for the root before we update the context
         _writeContext = _writeContext.createChildObjectContext();
         if (outerBrackets) { // Omit bracket when in root and json compatibility is disabled.
             if (_cfgPrettyPrinter != null) {
@@ -226,7 +244,7 @@ public class HoconGenerator extends GeneratorBase {
     public void writeStartObject(Object forValue) throws IOException {
         _verifyValueWrite(WRITE_OBJECT);
         _writeValueSeparator(true);
-        boolean outerBrackets = !_writeContext.inRoot() || !Feature.OMIT_ROOT_OBJECT_BRACKETS.enabledIn(_hoconFeatures);
+        boolean outerBrackets = !_writeContext.inRoot() || Feature.ROOT_OBJECT_BRACKETS.enabledIn(_hoconFeatures);
         _writeContext = _writeContext.createChildObjectContext(forValue);
         if (outerBrackets) {
             if (_cfgPrettyPrinter != null) {
@@ -244,7 +262,7 @@ public class HoconGenerator extends GeneratorBase {
         }
         int entryCount = _writeContext.getEntryCount();
         _writeContext = _writeContext.clearAndGetParent();
-        if (!_writeContext.inRoot() || !Feature.OMIT_ROOT_OBJECT_BRACKETS.enabledIn(_hoconFeatures)) { // Omit bracket when in root and json compatibility is disabled.
+        if (!_writeContext.inRoot() || Feature.ROOT_OBJECT_BRACKETS.enabledIn(_hoconFeatures)) { // Omit bracket when in root and json compatibility is disabled.
             if (_cfgPrettyPrinter != null) {
                 _cfgPrettyPrinter.writeEndObject(this, entryCount);
             } else {
@@ -282,7 +300,7 @@ public class HoconGenerator extends GeneratorBase {
         if (_cfgPrettyPrinter != null) {
             if (commaBefore) {
                 _cfgPrettyPrinter.writeObjectEntrySeparator(this);
-            } else if (!_writeContext.inRoot() && _writeContext.inObject() && (!_writeContext.getParent().inRoot() || !Feature.OMIT_ROOT_OBJECT_BRACKETS.enabledIn(_hoconFeatures))) {
+            } else if (!_writeContext.inRoot() && _writeContext.inObject() && (!_writeContext.getParent().inRoot() || Feature.ROOT_OBJECT_BRACKETS.enabledIn(_hoconFeatures))) {
                 // Omit indentation when it is an object, the parent is in root and the root brackets are omitted.
                 _cfgPrettyPrinter.beforeObjectEntries(this);
             }
@@ -318,7 +336,7 @@ public class HoconGenerator extends GeneratorBase {
      */
     protected void _writeString(String text) throws IOException {
         String renderedKey;
-        if (!Feature.UNQUOTE_TEXT_IF_POSSIBLE.enabledIn(_hoconFeatures)) {
+        if (Feature.ALWAYS_QUOTE_STRINGS.enabledIn(_hoconFeatures)) {
             renderedKey = ConfigImplUtil.renderJsonString(text);
         } else {
             renderedKey = _renderStringUnquotedIfPossible(text);
@@ -525,7 +543,7 @@ public class HoconGenerator extends GeneratorBase {
                 _writer.write(',');
                 break;
             case JsonWriteContext.STATUS_OK_AFTER_COLON:
-                if (!isObjectValue || !Feature.OMIT_OBJECT_VALUE_SEPARATOR.enabledIn(_hoconFeatures)) { // can be omitted for objects (only when json is disabled!)
+                if (!isObjectValue || Feature.OBJECT_VALUE_SEPARATOR.enabledIn(_hoconFeatures)) { // can be omitted for objects (only when json is disabled!)
                     _writer.write(':');
                 }
                 return; // Nothing to write otherwise
@@ -542,7 +560,7 @@ public class HoconGenerator extends GeneratorBase {
                 _cfgPrettyPrinter.writeArrayValueSeparator(this);
                 break;
             case JsonWriteContext.STATUS_OK_AFTER_COLON:
-                if (!isObjectValue || !Feature.OMIT_OBJECT_VALUE_SEPARATOR.enabledIn(_hoconFeatures)) { // can be omitted for objects (only when json is disabled!)
+                if (!isObjectValue || Feature.OBJECT_VALUE_SEPARATOR.enabledIn(_hoconFeatures)) { // can be omitted for objects (only when json is disabled!)
                     _cfgPrettyPrinter.writeObjectFieldValueSeparator(this);
                 } else {
                     _writer.write(' ');
