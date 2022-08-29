@@ -65,4 +65,11 @@ public class HoconGeneratorTest {
         Assert.assertEquals(getFileContent(url("test_equal_sign_separator.conf")), config);
     }
 
+    @Test
+    public void testFeatureUseNoPrettyPrinter() throws IOException, URISyntaxException {
+        ObjectMapper mapper = new ObjectMapper(new HoconFactory());
+        String config = mapper.writer().writeValueAsString(createConfiguration());
+        Assert.assertEquals(getFileContent(url("test_no_prettyprinter.conf")), config);
+    }
+
 }
