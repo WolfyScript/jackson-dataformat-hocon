@@ -1,4 +1,4 @@
-package com.jasonclawson.jackson.dataformat.hocon;
+package com.wolfyscript.jackson.dataformat.hocon;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Assert;
@@ -9,7 +9,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Scanner;
 

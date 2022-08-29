@@ -1,4 +1,4 @@
-package com.jasonclawson.jackson.dataformat.hocon;
+package com.wolfyscript.jackson.dataformat.hocon;
 
 import java.net.URL;
 import java.util.List;

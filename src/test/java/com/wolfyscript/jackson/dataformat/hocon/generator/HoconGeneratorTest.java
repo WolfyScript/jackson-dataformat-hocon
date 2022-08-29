@@ -1,11 +1,11 @@
-package com.jasonclawson.jackson.dataformat.hocon.generator;
+package com.wolfyscript.jackson.dataformat.hocon.generator;
 
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import com.fasterxml.jackson.core.util.Separators;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.jasonclawson.jackson.dataformat.hocon.Configuration;
-import com.jasonclawson.jackson.dataformat.hocon.HoconFactory;
-import com.jasonclawson.jackson.dataformat.hocon.HoconGenerator;
+import com.wolfyscript.jackson.dataformat.hocon.Configuration;
+import com.wolfyscript.jackson.dataformat.hocon.HoconFactory;
+import com.wolfyscript.jackson.dataformat.hocon.HoconGenerator;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;

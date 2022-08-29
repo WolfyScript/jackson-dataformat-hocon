@@ -1,4 +1,4 @@
-package com.jasonclawson.jackson.dataformat.hocon;
+package com.wolfyscript.jackson.dataformat.hocon;
 
 import com.fasterxml.jackson.core.Base64Variant;
 import com.fasterxml.jackson.core.FormatFeature;

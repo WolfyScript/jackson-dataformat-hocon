@@ -1,4 +1,4 @@
-package com.jasonclawson.jackson.dataformat.hocon;
+package com.wolfyscript.jackson.dataformat.hocon;
 
 import java.io.IOException;
 import java.io.OutputStream;
