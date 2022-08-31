@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.wolfyscript.jackson.dataformat.hocon.deserialization.HoconBeanDeserializerModifier;
 import com.wolfyscript.jackson.dataformat.hocon.deserialization.ModifiedPrimitiveArrayDeserializers;
+import com.wolfyscript.jackson.dataformat.hocon.deserialization.ModifiedStringArrayDeserializer;
 
 public class HoconMapper extends ObjectMapper {
 
@@ -22,6 +23,7 @@ public class HoconMapper extends ObjectMapper {
     private void initHoconModul() {
         SimpleModule module = new SimpleModule();
         module.setDeserializerModifier(new HoconBeanDeserializerModifier());
+        module.addDeserializer(String[].class, ModifiedStringArrayDeserializer.instance);
         for (Class<?> primitiveArrayType : PRIMITIVE_ARRAY_TYPES) {
             addPrimitiveArrayDeserializer(module, primitiveArrayType);
         }
