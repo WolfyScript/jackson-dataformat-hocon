@@ -78,22 +78,13 @@ public class ModifiedObjectArrayDeserializer extends ObjectArrayDeserializer {
                     sortedElements.put(index, _nullProvider.getNullValue(ctxt));
                     continue;
                 }
-                Object old = sortedElements.get(index);
                 Object value;
-                if (old != null) {
-                    if (_elementTypeDeserializer == null) {
-                        value = _elementDeserializer.deserialize(p, ctxt, old);
-                    } else {
-                        value = _elementDeserializer.deserializeWithType(p, ctxt, _elementTypeDeserializer, old);
-                    }
-                } else if (_elementTypeDeserializer == null) {
+                if (_elementTypeDeserializer == null) {
                     value = _elementDeserializer.deserialize(p, ctxt);
                 } else {
                     value = _elementDeserializer.deserializeWithType(p, ctxt, _elementTypeDeserializer);
                 }
-                if (value != old) {
-                    sortedElements.put(index, value);
-                }
+                sortedElements.put(index, value);
             } catch (Exception e) {
                 wrapAndThrow(ctxt, e, intoValue, key);
             }
