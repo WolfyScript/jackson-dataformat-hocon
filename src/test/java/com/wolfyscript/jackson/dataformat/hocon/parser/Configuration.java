@@ -1,4 +1,4 @@
-package com.wolfyscript.jackson.dataformat.hocon;
+package com.wolfyscript.jackson.dataformat.hocon.parser;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
