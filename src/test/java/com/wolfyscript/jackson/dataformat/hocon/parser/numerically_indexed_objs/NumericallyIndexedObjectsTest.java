@@ -1,5 +1,6 @@
 package com.wolfyscript.jackson.dataformat.hocon.parser.numerically_indexed_objs;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.wolfyscript.jackson.dataformat.hocon.HoconMapper;
 import java.io.IOException;
@@ -8,6 +9,8 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Scanner;
 import org.junit.Assert;
 import org.junit.Test;
@@ -30,6 +33,39 @@ public class NumericallyIndexedObjectsTest {
         Scanner s = new Scanner(is).useDelimiter("\\A");
         return s.hasNext() ? s.next() : "";
     }
+
+    @Test
+    public void testMultiElementInvalidValuesObject() throws IOException {
+        HoconMapper mapper = new HoconMapper();
+        Map<String, Object> stringArray = mapper.readValue(stream("multi-element-invalid-values.conf"), new TypeReference<Map<String, Object>>() {});
+        Map<String, Object> expected = new HashMap<>();
+        expected.put("2", 0);
+        expected.put("4", "f");
+        expected.put("3", 0.7);
+        expected.put("1", "test");
+        expected.put("0", true);
+        Assert.assertEquals(expected, stringArray);
+    }
+
+    @Test
+    public void testMultiElementInvalidKeysObject() throws IOException {
+        HoconMapper mapper = new HoconMapper();
+        Map<String, Object> stringArray = mapper.readValue(stream("int-multi-element-invalid-keys.conf"), new TypeReference<Map<String, Object>>() {});
+        Map<String, Object> expected = new HashMap<>();
+        expected.put("bar", null);
+        expected.put("4", 7);
+        expected.put("foo", "bar");
+        expected.put("2", 5);
+        expected.put("0", 9);
+        expected.put("1", 8);
+        Assert.assertEquals(expected, stringArray);
+    }
+
+    /*
+    /**********************************************************
+    /* Conversions from Object to Array/Collection
+    /**********************************************************
+     */
 
     /*
     /**********************************************************
