@@ -2,8 +2,8 @@ package com.wolfyscript.jackson.dataformat.hocon.parser;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wolfyscript.jackson.dataformat.hocon.HoconFactory;
+import com.wolfyscript.jackson.dataformat.hocon.HoconMapper;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -22,7 +22,7 @@ public class TestArrays {
 
     @Test
     public void testArrays() throws IOException {
-        ObjectMapper mapper = new ObjectMapper(new HoconFactory());
+        HoconMapper mapper = new HoconMapper();
 
         Container cOne = mapper.readValue(hoconOne, Container.class);
         Container cTwo = mapper.readValue(hoconTwo, Container.class);
@@ -45,7 +45,7 @@ public class TestArrays {
     }
     
     private void testNonArray(String json) throws JsonProcessingException, IOException {
-        ObjectMapper hoconmapper = new ObjectMapper(new HoconFactory());
+        HoconMapper hoconmapper = new HoconMapper();
         JsonNode node = hoconmapper.readTree(json);
         assertFalse("Should NOT be resolved to array :"+json, node.isArray());
     }
@@ -66,13 +66,11 @@ public class TestArrays {
         for (String s : values) {
             list.add(s);
         }
-        // TODO use hocon mapper for writes when available
-        ObjectMapper jsonmapper = new ObjectMapper();
-        ObjectMapper hoconmapper = new ObjectMapper(new HoconFactory());
+        HoconMapper hoconmapper = new HoconMapper(new HoconFactory());
         Container c1 = new Container();
         c1.list = list;
         
-        String json = jsonmapper.writeValueAsString(c1);
+        String json = hoconmapper.writeValueAsString(c1);
         Container c2 = hoconmapper.readValue(json, Container.class);
         
         assertEquals(c1,c2);
