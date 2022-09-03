@@ -22,6 +22,8 @@ This fork adds and improves features:
 * Update to JDK 8
 * Adds HoconGenerator to directly generate Hocon
 * Improved Numerically Index Objects using custom deserializers
+  * A Numerically Indexed Object can both be deserialized as an Object and Array
+  * Ignore keys that are not positive integers, including string keys
 
 How to Use
 ------------
