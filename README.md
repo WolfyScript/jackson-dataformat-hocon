@@ -14,7 +14,7 @@ Why this project?
 This project lets you use HOCON to configure any application that uses Jackson to parse its configuration files.
 
 ## Why this Fork?
-My projects heavily rely on Jackson, and it's annotation and polymorphism features. Migrating to other libraries/parsers is not feasible.  
+My projects heavily rely on Jackson, and its annotation and polymorphism features. Migrating to other libraries/parsers is not feasible.  
 But the original project did not see any updates in 6 years and lacked quite a few features.  
 
 This fork adds and improves features:  
