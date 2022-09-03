@@ -1,52 +1,51 @@
 package com.wolfyscript.jackson.dataformat.hocon;
 
-import java.util.Iterator;
-import java.util.Map;
-import java.util.TreeMap;
-
 import com.fasterxml.jackson.core.JsonStreamContext;
 import com.fasterxml.jackson.core.JsonToken;
 import com.typesafe.config.ConfigList;
 import com.typesafe.config.ConfigObject;
 import com.typesafe.config.ConfigValue;
 import com.typesafe.config.ConfigValueType;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.TreeMap;
 
 public abstract class HoconNodeCursor extends JsonStreamContext {
 
-	protected final HoconNodeCursor _parent;
-	protected String _currentName;
+    protected final HoconNodeCursor _parent;
+    protected String _currentName;
 
-	public HoconNodeCursor(int contextType, HoconNodeCursor p) {
-		_type = contextType;
-		_index = -1;
-		_parent = p;
-	}
+    public HoconNodeCursor(int contextType, HoconNodeCursor p) {
+        _type = contextType;
+        _index = -1;
+        _parent = p;
+    }
 
-	@Override
-	public HoconNodeCursor getParent() {
-		return _parent;
-	}
+    @Override
+    public HoconNodeCursor getParent() {
+        return _parent;
+    }
 
-	@Override
-	public String getCurrentName() {
-		return _currentName;
-	}
-	
-	public void overrideCurrentName(String name) {
+    @Override
+    public String getCurrentName() {
+        return _currentName;
+    }
+
+    public void overrideCurrentName(String name) {
         _currentName = name;
     }
-	
+
     /**
      * HOCON specific method to construct the path for this node. Useful for
      * interacting directly with the underlying Config instance in custom
      * deserializers.
-     * 
+     *
      * @return The path of this node cursor.
      */
     public String constructPath() {
         return constructPath(new StringBuilder()).toString();
     }
-	
+
     private StringBuilder constructPath(StringBuilder initial) {
         if (_parent != null) {
             return _parent.constructPath(initial).append('.').append(_currentName);
@@ -54,47 +53,43 @@ public abstract class HoconNodeCursor extends JsonStreamContext {
             return initial.append(_currentName);
         }
     }
-	
-	public abstract JsonToken nextToken();
+
+    public abstract JsonToken nextToken();
 
     public abstract JsonToken endToken();
 
     public abstract ConfigValue currentNode();
 
     public abstract boolean currentHasChildren();
-    
+
     protected static boolean isArray(ConfigValue value) {
-    	return value.valueType() == ConfigValueType.LIST;
+        return value.valueType() == ConfigValueType.LIST;
     }
-    
+
     protected static boolean isObject(ConfigValue value) {
-    	return value.valueType() == ConfigValueType.OBJECT;
+        return value.valueType() == ConfigValueType.OBJECT;
     }
-    
+
     protected static JsonToken asJsonToken(ConfigValue value) {
-		return HoconTreeTraversingParser.asJsonToken(value);
-	}
-    
+        return HoconTreeTraversingParser.asJsonToken(value);
+    }
+
     /**
      * Method called to create a new context for iterating all
      * contents of the current structured value (JSON array or object)
+     *
      * @return a cursor over the children of this node
      */
     public final HoconNodeCursor iterateChildren() {
-    	ConfigValue n = currentNode();
+        ConfigValue n = currentNode();
         if (n == null) throw new IllegalStateException("No current node");
-        boolean numericallyIndexed = isNumericallyIndexed(n);
-        if (!numericallyIndexed) {
-            if (isArray(n)) { // false since we have already returned START_ARRAY
-                return new Array(n, this);
-            }
-            if (isObject(n)) {
-                return new Object(n, this);
-            }
-        } else {
-            return new NumericallyIndexedObjectBackedArray(n, this);
+        if (isArray(n)) { // false since we have already returned START_ARRAY
+            return new Array(n, this);
         }
-        throw new IllegalStateException("Current node of type "+n.getClass().getName());
+        if (isObject(n)) {
+            return new Object(n, this);
+        }
+        throw new IllegalStateException("Current node of type " + n.getClass().getName());
     }
 
     public static boolean isNumericallyIndexed(ConfigValue n) {
@@ -133,36 +128,42 @@ public abstract class HoconNodeCursor extends JsonStreamContext {
     }
 
     protected final static class RootValue extends HoconNodeCursor {
-    	 protected ConfigValue _node;
+        protected ConfigValue _node;
 
-         protected boolean _done = false;
+        protected boolean _done = false;
 
-         public RootValue(ConfigValue n, HoconNodeCursor p) {
-             super(JsonStreamContext.TYPE_ROOT, p);
-             _node = n;
-         }
-         
-         @Override
-         public JsonToken nextToken() {
-             if (!_done) {
-                 _done = true;
-                 return asJsonToken(_node);
-             }
-             _node = null;
-             return null;
-         }
-         
-         @Override
-         public JsonToken endToken() { return null; }
+        public RootValue(ConfigValue n, HoconNodeCursor p) {
+            super(JsonStreamContext.TYPE_ROOT, p);
+            _node = n;
+        }
 
-         @Override
-         public ConfigValue currentNode() { return _node; }
+        @Override
+        public JsonToken nextToken() {
+            if (!_done) {
+                _done = true;
+                return asJsonToken(_node);
+            }
+            _node = null;
+            return null;
+        }
 
-         @Override
-         public boolean currentHasChildren() { return false; }
-    	
+        @Override
+        public JsonToken endToken() {
+            return null;
+        }
+
+        @Override
+        public ConfigValue currentNode() {
+            return _node;
+        }
+
+        @Override
+        public boolean currentHasChildren() {
+            return false;
+        }
+
     }
-    
+
     /**
      * Cursor used for traversing non-empty JSON Array nodes
      */
@@ -173,7 +174,7 @@ public abstract class HoconNodeCursor extends JsonStreamContext {
 
         public Array(ConfigValue n, HoconNodeCursor p) {
             super(JsonStreamContext.TYPE_ARRAY, p);
-            _contents = ((ConfigList)n).iterator();
+            _contents = ((ConfigList) n).iterator();
         }
 
         @Override
@@ -187,20 +188,24 @@ public abstract class HoconNodeCursor extends JsonStreamContext {
         }
 
         @Override
-        public JsonToken endToken() { return JsonToken.END_ARRAY; }
+        public JsonToken endToken() {
+            return JsonToken.END_ARRAY;
+        }
 
         @Override
-        public ConfigValue currentNode() { return _currentNode; }
+        public ConfigValue currentNode() {
+            return _currentNode;
+        }
 
         @Override
         public boolean currentHasChildren() {
-        	if(currentNode() instanceof ConfigList) {
-        		return !((ConfigList)currentNode()).isEmpty();
-        	} else if (currentNode() instanceof ConfigObject) {
-        		return !((ConfigObject)currentNode()).isEmpty();
-        	} else {
-        		return false;
-        	}
+            if (currentNode() instanceof ConfigList) {
+                return !((ConfigList) currentNode()).isEmpty();
+            } else if (currentNode() instanceof ConfigObject) {
+                return !((ConfigObject) currentNode()).isEmpty();
+            } else {
+                return false;
+            }
         }
     }
 
@@ -215,7 +220,7 @@ public abstract class HoconNodeCursor extends JsonStreamContext {
         public NumericallyIndexedObjectBackedArray(ConfigValue n, HoconNodeCursor p) {
             super(JsonStreamContext.TYPE_ARRAY, p);
             TreeMap<Integer, ConfigValue> sortedContents = new TreeMap<Integer, ConfigValue>();
-            for (Map.Entry<String, ConfigValue> entry: ((ConfigObject) n).entrySet()) {
+            for (Map.Entry<String, ConfigValue> entry : ((ConfigObject) n).entrySet()) {
                 try {
                     Integer key = Integer.parseInt(entry.getKey());
                     sortedContents.put(key, entry.getValue());
@@ -239,17 +244,21 @@ public abstract class HoconNodeCursor extends JsonStreamContext {
         }
 
         @Override
-        public JsonToken endToken() { return JsonToken.END_ARRAY; }
+        public JsonToken endToken() {
+            return JsonToken.END_ARRAY;
+        }
 
         @Override
-        public ConfigValue currentNode() { return _currentNode; }
+        public ConfigValue currentNode() {
+            return _currentNode;
+        }
 
         @Override
         public boolean currentHasChildren() {
-            if(currentNode() instanceof ConfigList) {
-                return !((ConfigList)currentNode()).isEmpty();
+            if (currentNode() instanceof ConfigList) {
+                return !((ConfigList) currentNode()).isEmpty();
             } else if (currentNode() instanceof ConfigObject) {
-                return !((ConfigObject)currentNode()).isEmpty();
+                return !((ConfigObject) currentNode()).isEmpty();
             } else {
                 return false;
             }
@@ -264,7 +273,7 @@ public abstract class HoconNodeCursor extends JsonStreamContext {
         protected Map.Entry<String, ConfigValue> _current;
 
         protected boolean _needEntry;
-        
+
         public Object(ConfigValue n, HoconNodeCursor p) {
             super(JsonStreamContext.TYPE_OBJECT, p);
             _contents = ((ConfigObject) n).entrySet().iterator();
@@ -290,7 +299,9 @@ public abstract class HoconNodeCursor extends JsonStreamContext {
         }
 
         @Override
-        public JsonToken endToken() { return JsonToken.END_OBJECT; }
+        public JsonToken endToken() {
+            return JsonToken.END_OBJECT;
+        }
 
         @Override
         public ConfigValue currentNode() {
@@ -299,13 +310,13 @@ public abstract class HoconNodeCursor extends JsonStreamContext {
 
         @Override
         public boolean currentHasChildren() {
-        	if(currentNode() instanceof ConfigList) {
-        		return !((ConfigList)currentNode()).isEmpty();
-        	} else if (currentNode() instanceof ConfigObject) {
-        		return !((ConfigObject)currentNode()).isEmpty();
-        	} else {
-        		return false;
-        	}
+            if (currentNode() instanceof ConfigList) {
+                return !((ConfigList) currentNode()).isEmpty();
+            } else if (currentNode() instanceof ConfigObject) {
+                return !((ConfigObject) currentNode()).isEmpty();
+            } else {
+                return false;
+            }
         }
     }
 

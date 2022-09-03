@@ -3,7 +3,7 @@ package com.wolfyscript.jackson.dataformat.hocon.generator;
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import com.fasterxml.jackson.core.util.Separators;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.wolfyscript.jackson.dataformat.hocon.Configuration;
+import com.wolfyscript.jackson.dataformat.hocon.parser.Configuration;
 import com.wolfyscript.jackson.dataformat.hocon.HoconFactory;
 import com.wolfyscript.jackson.dataformat.hocon.HoconGenerator;
 import java.io.IOException;
