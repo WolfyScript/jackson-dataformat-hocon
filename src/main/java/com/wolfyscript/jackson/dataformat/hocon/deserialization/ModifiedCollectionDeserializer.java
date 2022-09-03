@@ -1,51 +1,26 @@
 package com.wolfyscript.jackson.dataformat.hocon.deserialization;
 
-import com.fasterxml.jackson.core.JacksonException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonDeserializer;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.deser.NullValueProvider;
-import com.fasterxml.jackson.databind.deser.UnresolvedForwardReference;
-import com.fasterxml.jackson.databind.deser.ValueInstantiator;
 import com.fasterxml.jackson.databind.deser.std.CollectionDeserializer;
-import com.fasterxml.jackson.databind.deser.std.MapDeserializer;
-import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.databind.jsontype.TypeDeserializer;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.IOException;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.TreeMap;
 
 public class ModifiedCollectionDeserializer extends CollectionDeserializer {
 
-    protected ObjectMapper mapper;
-
-    public ModifiedCollectionDeserializer(ObjectMapper mapper, JavaType collectionType, JsonDeserializer<Object> valueDeser, TypeDeserializer valueTypeDeser, ValueInstantiator valueInstantiator) {
-        super(collectionType, valueDeser, valueTypeDeser, valueInstantiator);
-        this.mapper = mapper;
-    }
-
-    protected ModifiedCollectionDeserializer(ObjectMapper mapper, JavaType collectionType, JsonDeserializer<Object> valueDeser, TypeDeserializer valueTypeDeser, ValueInstantiator valueInstantiator, JsonDeserializer<Object> delegateDeser, NullValueProvider nuller, Boolean unwrapSingle) {
-        super(collectionType, valueDeser, valueTypeDeser, valueInstantiator, delegateDeser, nuller, unwrapSingle);
-        this.mapper = mapper;
-    }
-
-    protected ModifiedCollectionDeserializer(ObjectMapper mapper, CollectionDeserializer src) {
+    protected ModifiedCollectionDeserializer(CollectionDeserializer src) {
         super(src);
-        this.mapper = mapper;
     }
 
     @Override
     protected CollectionDeserializer withResolved(JsonDeserializer<?> dd, JsonDeserializer<?> vd, TypeDeserializer vtd, NullValueProvider nuller, Boolean unwrapSingle) {
-        return new ModifiedCollectionDeserializer(mapper, super.withResolved(dd, vd, vtd, nuller, unwrapSingle));
+        return new ModifiedCollectionDeserializer(super.withResolved(dd, vd, vtd, nuller, unwrapSingle));
     }
 
     @Override
@@ -79,9 +54,6 @@ public class ModifiedCollectionDeserializer extends CollectionDeserializer {
 
 
     protected Collection<Object> deserializeFromMap(JsonParser p, DeserializationContext ctxt, Collection<Object> result) throws IOException {
-        final JsonDeserializer<Object> valueDes = _valueDeserializer;
-        final TypeDeserializer typeDeser = _valueTypeDeserializer;
-
         TreeMap<Integer, Object> sortedElements = new TreeMap<>();
 
         // Note: assumption is that Object Id handling can't really work with merging
@@ -124,18 +96,20 @@ public class ModifiedCollectionDeserializer extends CollectionDeserializer {
                     sortedElements.put(index, _nullProvider.getNullValue(ctxt));
                     continue;
                 }
-                Object old = sortedElements.get(index); // This does not really work, as the index in the
+                Object old = sortedElements.get(index);
+                // This makes it possible to override values with the same index.
+                // It does not take the values from `result` into account as we cannot determine the actual index of the value yet!
                 Object value;
                 if (old != null) {
-                    if (typeDeser == null) {
-                        value = valueDes.deserialize(p, ctxt, old);
+                    if (_valueTypeDeserializer == null) {
+                        value = _valueDeserializer.deserialize(p, ctxt, old);
                     } else {
-                        value = valueDes.deserializeWithType(p, ctxt, typeDeser, old);
+                        value = _valueDeserializer.deserializeWithType(p, ctxt, _valueTypeDeserializer, old);
                     }
-                } else if (typeDeser == null) {
-                    value = valueDes.deserialize(p, ctxt);
+                } else if (_valueTypeDeserializer == null) {
+                    value = _valueDeserializer.deserialize(p, ctxt);
                 } else {
-                    value = valueDes.deserializeWithType(p, ctxt, typeDeser);
+                    value = _valueDeserializer.deserializeWithType(p, ctxt, _valueTypeDeserializer);
                 }
                 if (value != old) {
                     sortedElements.put(index, value);

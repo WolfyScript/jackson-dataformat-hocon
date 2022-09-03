@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.BeanDescription;
 import com.fasterxml.jackson.databind.DeserializationConfig;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.deser.BeanDeserializerModifier;
 import com.fasterxml.jackson.databind.deser.std.CollectionDeserializer;
 import com.fasterxml.jackson.databind.deser.std.ObjectArrayDeserializer;
@@ -30,7 +29,7 @@ public class HoconBeanDeserializerModifier extends BeanDeserializerModifier {
     public JsonDeserializer<?> modifyCollectionDeserializer(DeserializationConfig config, CollectionType type, BeanDescription beanDesc, JsonDeserializer<?> deserializer) {
         if (deserializer instanceof CollectionDeserializer) {
             CollectionDeserializer collectionDeserializer = (CollectionDeserializer) deserializer;
-            return new ModifiedCollectionDeserializer(new ObjectMapper(), collectionDeserializer);
+            return new ModifiedCollectionDeserializer(collectionDeserializer);
         } else if (deserializer instanceof StringCollectionDeserializer) {
             StringCollectionDeserializer collectionDeserializer = (StringCollectionDeserializer) deserializer;
             return new ModifiedStringCollectionDeserializer(collectionDeserializer.getValueType(), collectionDeserializer.getContentDeserializer(), collectionDeserializer.getValueInstantiator());
