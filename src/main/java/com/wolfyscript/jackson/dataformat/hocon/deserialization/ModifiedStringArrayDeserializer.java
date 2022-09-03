@@ -186,8 +186,7 @@ public final class ModifiedStringArrayDeserializer
     /**
      * Offlined version used when we do not use the default deserialization method.
      */
-    protected final String[] _deserializeCustom(JsonParser p, DeserializationContext ctxt,
-                                                String[] old) throws IOException {
+    protected String[] _deserializeCustom(JsonParser p, DeserializationContext ctxt, String[] old) throws IOException {
         final ObjectBuffer buffer = ctxt.leaseObjectBuffer();
         int ix;
         Object[] chunk;

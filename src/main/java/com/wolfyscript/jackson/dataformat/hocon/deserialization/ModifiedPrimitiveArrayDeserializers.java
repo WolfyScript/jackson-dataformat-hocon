@@ -34,8 +34,7 @@ import java.util.TreeMap;
  * arrays that contain non-object java primitive types.
  */
 @SuppressWarnings("serial")
-public abstract class ModifiedPrimitiveArrayDeserializers<T> extends StdDeserializer<T>
-        implements ContextualDeserializer // since 2.7
+public abstract class ModifiedPrimitiveArrayDeserializers<T> extends StdDeserializer<T> implements ContextualDeserializer // since 2.7
 {
     /**
      * Specific override for this instance (from proper, or global per-type overrides)
@@ -70,8 +69,7 @@ public abstract class ModifiedPrimitiveArrayDeserializers<T> extends StdDeserial
     /**
      * @since 2.7
      */
-    protected ModifiedPrimitiveArrayDeserializers(ModifiedPrimitiveArrayDeserializers<?> base,
-                                                  NullValueProvider nuller, Boolean unwrapSingle) {
+    protected ModifiedPrimitiveArrayDeserializers(ModifiedPrimitiveArrayDeserializers<?> base, NullValueProvider nuller, Boolean unwrapSingle) {
         super(base._valueClass);
         _unwrapSingle = unwrapSingle;
         _nuller = nuller;
@@ -108,8 +106,7 @@ public abstract class ModifiedPrimitiveArrayDeserializers<T> extends StdDeserial
     }
 
     @Override
-    public JsonDeserializer<?> createContextual(DeserializationContext ctxt,
-                                                BeanProperty property) throws JsonMappingException {
+    public JsonDeserializer<?> createContextual(DeserializationContext ctxt, BeanProperty property) throws JsonMappingException {
         Boolean unwrapSingle = findFormatFeature(ctxt, property, _valueClass,
                 JsonFormat.Feature.ACCEPT_SINGLE_VALUE_AS_ARRAY);
         NullValueProvider nuller = null;
@@ -150,8 +147,7 @@ public abstract class ModifiedPrimitiveArrayDeserializers<T> extends StdDeserial
     /**
      * @since 2.9
      */
-    protected abstract ModifiedPrimitiveArrayDeserializers<?> withResolved(NullValueProvider nuller,
-                                                                           Boolean unwrapSingle);
+    protected abstract ModifiedPrimitiveArrayDeserializers<?> withResolved(NullValueProvider nuller, Boolean unwrapSingle);
 
     // since 2.9
     protected abstract T _constructEmpty();
@@ -366,8 +362,7 @@ public abstract class ModifiedPrimitiveArrayDeserializers<T> extends StdDeserial
         }
 
         @Override
-        protected char[] handleSingleElementUnwrapped(JsonParser p,
-                                                      DeserializationContext ctxt) throws IOException {
+        protected char[] handleSingleElementUnwrapped(JsonParser p, DeserializationContext ctxt) throws IOException {
             // not sure how this should work...
             return (char[]) ctxt.handleUnexpectedToken(_valueClass, p);
         }
@@ -434,8 +429,7 @@ public abstract class ModifiedPrimitiveArrayDeserializers<T> extends StdDeserial
         }
 
         @Override
-        protected ModifiedPrimitiveArrayDeserializers<?> withResolved(NullValueProvider nuller,
-                                                                      Boolean unwrapSingle) {
+        protected ModifiedPrimitiveArrayDeserializers<?> withResolved(NullValueProvider nuller, Boolean unwrapSingle) {
             return new ModifiedPrimitiveArrayDeserializers.BooleanDeser(this, nuller, unwrapSingle);
         }
 
@@ -558,8 +552,7 @@ public abstract class ModifiedPrimitiveArrayDeserializers<T> extends StdDeserial
         }
 
         @Override
-        protected ModifiedPrimitiveArrayDeserializers<?> withResolved(NullValueProvider nuller,
-                                                                      Boolean unwrapSingle) {
+        protected ModifiedPrimitiveArrayDeserializers<?> withResolved(NullValueProvider nuller, Boolean unwrapSingle) {
             return new ModifiedPrimitiveArrayDeserializers.ByteDeser(this, nuller, unwrapSingle);
         }
 
@@ -590,8 +583,7 @@ public abstract class ModifiedPrimitiveArrayDeserializers<T> extends StdDeserial
                     //   binary data
                     String msg = e.getOriginalMessage();
                     if (msg.contains("base64")) {
-                        return (byte[]) ctxt.handleWeirdStringValue(byte[].class,
-                                p.getText(), msg);
+                        return (byte[]) ctxt.handleWeirdStringValue(byte[].class, p.getText(), msg);
                     }
                 }
             }
@@ -642,8 +634,7 @@ public abstract class ModifiedPrimitiveArrayDeserializers<T> extends StdDeserial
         }
 
         @Override
-        protected byte[] handleSingleElementUnwrapped(JsonParser p,
-                                                      DeserializationContext ctxt) throws IOException {
+        protected byte[] handleSingleElementUnwrapped(JsonParser p, DeserializationContext ctxt) throws IOException {
             byte value;
             JsonToken t = p.currentToken();
             if (t == JsonToken.VALUE_NUMBER_INT) {
@@ -731,8 +722,7 @@ public abstract class ModifiedPrimitiveArrayDeserializers<T> extends StdDeserial
         }
 
         @Override
-        protected ModifiedPrimitiveArrayDeserializers<?> withResolved(NullValueProvider nuller,
-                                                                      Boolean unwrapSingle) {
+        protected ModifiedPrimitiveArrayDeserializers<?> withResolved(NullValueProvider nuller, Boolean unwrapSingle) {
             return new ModifiedPrimitiveArrayDeserializers.ShortDeser(this, nuller, unwrapSingle);
         }
 
@@ -845,8 +835,7 @@ public abstract class ModifiedPrimitiveArrayDeserializers<T> extends StdDeserial
         }
 
         @Override
-        protected ModifiedPrimitiveArrayDeserializers<?> withResolved(NullValueProvider nuller,
-                                                                      Boolean unwrapSingle) {
+        protected ModifiedPrimitiveArrayDeserializers<?> withResolved(NullValueProvider nuller, Boolean unwrapSingle) {
             return new ModifiedPrimitiveArrayDeserializers.IntDeser(this, nuller, unwrapSingle);
         }
 
@@ -962,8 +951,7 @@ public abstract class ModifiedPrimitiveArrayDeserializers<T> extends StdDeserial
         }
 
         @Override
-        protected ModifiedPrimitiveArrayDeserializers<?> withResolved(NullValueProvider nuller,
-                                                                      Boolean unwrapSingle) {
+        protected ModifiedPrimitiveArrayDeserializers<?> withResolved(NullValueProvider nuller, Boolean unwrapSingle) {
             return new ModifiedPrimitiveArrayDeserializers.LongDeser(this, nuller, unwrapSingle);
         }
 
