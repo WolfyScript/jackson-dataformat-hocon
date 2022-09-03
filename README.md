@@ -4,16 +4,42 @@ Implementation of a [Jackson](https://github.com/FasterXML/jackson) parser for p
 
 What the heck is HOCON?
 -------------------------
-HOCON stands for Human-Optimized Config Object Notation and is made by [Typesafe](github.com/typesafehub/config).
+HOCON stands for Human-Optimized Config Object Notation and is made by [Typesafe](https://github.com/lightbend/config).
 
-In short, HOCON combines YAML, JSON, and Properties files into a single format. On most cases, YAML, JSON, and Properties formats are all valid HOCON--- and it can be mixed and matched at will. Check out the HOCON docs for more detail on the format.
+In short, HOCON combines JSON, and Properties files into a single format. On most cases, JSON, and Properties formats are valid HOCON and it can be mixed and matched at will.   
+Check out the [HOCON docs](https://github.com/lightbend/config/blob/main/HOCON.md) for more detail on the format.
 
 Why this project?
 ------------------------
 This project lets you use HOCON to configure any application that uses Jackson to parse its configuration files.
 
+## Why this Fork?
+My projects heavily rely on Jackson, and it's annotation and polymorphism features. Migrating to other libraries/parsers is not feasible.  
+But the original project did not see any updates in 6 years and lacked quite a few features.  
+
+This fork adds and improves features:  
+* Update to Jackson 2.13
+* Update to JDK 8
+* Adds HoconGenerator to directly generate Hocon
+* Improved Numerically Index Objects using custom deserializers
+
 How to Use
 ------------
+### Install
+Clone this project and run `mvn install`  
+
+After that add the following dependency to your projects' pom:
+```xml
+  <dependency>
+    <groupId>com.wolfyscript</groupId>
+    <artifactId>jackson-dataformat-hocon</artifactId>
+    <version>2.0-SNAPSHOT</version>
+  </dependency>
+```
+*I am looking into publishing this project to the central repository soon.*
+
+<details><summary>Old Project</summary>
+
 Add the following fragment to your project pom to include HOCON data format:
 ```xml
   <dependency>
@@ -22,10 +48,16 @@ Add the following fragment to your project pom to include HOCON data format:
     <version>1.1.1</version>
   </dependency>
 ```
+</details>
 
-Create the Jackson ObjectMapper with the following constructor:
+### Use
+Create the HoconMapper with the following constructor:
 ```java
-  ObjectMapper mapper = new ObjectMapper(new HoconFactory());
+  HoconMapper mapper = new HoconMapper();
+```
+To customize the generator features use:
+```java
+  HoconMapper mapper = new HoconMapper(new HoconFactory());
 ```
 
 Some Caveats
