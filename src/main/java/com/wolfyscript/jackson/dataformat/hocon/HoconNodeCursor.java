@@ -51,7 +51,6 @@ public abstract class HoconNodeCursor extends JsonStreamContext {
 
     @Override
     public void setCurrentValue(java.lang.Object v) {
-        System.out.println("Set " + constructPath() + " >> " + (v == null ? null : v.getClass()));
         this._currentValue = v;
     }
 
