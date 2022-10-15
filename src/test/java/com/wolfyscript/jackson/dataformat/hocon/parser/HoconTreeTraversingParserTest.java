@@ -2,6 +2,7 @@ package com.wolfyscript.jackson.dataformat.hocon.parser;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wolfyscript.jackson.dataformat.hocon.HoconFactory;
+import java.nio.charset.StandardCharsets;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -24,7 +25,7 @@ public class HoconTreeTraversingParserTest {
 	}
 
 	private static Reader reader(InputStream is) throws IOException {
-		return new InputStreamReader(is, "UTF-8");
+		return new InputStreamReader(is, StandardCharsets.UTF_8);
 	}
 
 	private static String string(InputStream is) {
