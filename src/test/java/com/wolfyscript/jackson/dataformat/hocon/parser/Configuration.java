@@ -3,79 +3,82 @@ package com.wolfyscript.jackson.dataformat.hocon.parser;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.util.Objects;
 
-@JsonIgnoreProperties(ignoreUnknown=true)
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Configuration {
-	
-		public String something;
-		public Context context;
-		public float value;
 
-		public Configuration() { }
+    public String something;
+    public Context context;
+    public float value;
 
-		public Configuration(String something, Context context, float value) {
-			this.something = something;
-			this.context = context;
-			this.value = value;
-		}
+    public Configuration() {
+    }
 
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (o == null || getClass() != o.getClass()) return false;
-		Configuration that = (Configuration) o;
-		return Float.compare(that.value, value) == 0 && Objects.equals(something, that.something) && Objects.equals(context, that.context);
-	}
+    public Configuration(String something, Context context, float value) {
+        this.something = something;
+        this.context = context;
+        this.value = value;
+    }
 
-	@Override
-	public int hashCode() {
-		return Objects.hash(something, context, value);
-	}
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Configuration that = (Configuration) o;
+        return Float.compare(that.value, value) == 0 && Objects.equals(something, that.something) && Objects.equals(context, that.context);
+    }
 
-	public static class Context {
-			public Lib lib;
+    @Override
+    public int hashCode() {
+        return Objects.hash(something, context, value);
+    }
 
-			public Context() { }
+    public static class Context {
+        public Lib lib;
 
-			public Context(Lib lib) {
-				this.lib = lib;
-			}
+        public Context() {
+        }
 
-			@Override
-			public boolean equals(Object o) {
-				if (this == o) return true;
-				if (o == null || getClass() != o.getClass()) return false;
-				Context context = (Context) o;
-				return Objects.equals(lib, context.lib);
-			}
+        public Context(Lib lib) {
+            this.lib = lib;
+        }
 
-			@Override
-			public int hashCode() {
-				return Objects.hash(lib);
-			}
-		}
-		
-		public static class Lib {
-			public String foo;
-			public String whatever;
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            Context context = (Context) o;
+            return Objects.equals(lib, context.lib);
+        }
 
-			public Lib() { }
+        @Override
+        public int hashCode() {
+            return Objects.hash(lib);
+        }
+    }
 
-			public Lib(String foo, String whatever) {
-				this.foo = foo;
-				this.whatever = whatever;
-			}
+    public static class Lib {
+        public String foo;
+        public String whatever;
 
-			@Override
-			public boolean equals(Object o) {
-				if (this == o) return true;
-				if (o == null || getClass() != o.getClass()) return false;
-				Lib lib = (Lib) o;
-				return Objects.equals(foo, lib.foo) && Objects.equals(whatever, lib.whatever);
-			}
+        public Lib() {
+        }
 
-			@Override
-			public int hashCode() {
-				return Objects.hash(foo, whatever);
-			}
-		}
+        public Lib(String foo, String whatever) {
+            this.foo = foo;
+            this.whatever = whatever;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            Lib lib = (Lib) o;
+            return Objects.equals(foo, lib.foo) && Objects.equals(whatever, lib.whatever);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(foo, whatever);
+        }
+    }
 }
