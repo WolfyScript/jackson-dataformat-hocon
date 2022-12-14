@@ -7,6 +7,7 @@ import com.fasterxml.jackson.core.ObjectCodec;
 import com.fasterxml.jackson.core.SerializableString;
 import com.fasterxml.jackson.core.base.GeneratorBase;
 import com.fasterxml.jackson.core.io.IOContext;
+import com.fasterxml.jackson.core.io.NumberOutput;
 import com.fasterxml.jackson.core.json.JsonWriteContext;
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import com.typesafe.config.impl.ConfigImplUtil;
@@ -54,8 +55,8 @@ public class HoconGenerator extends GeneratorBase {
          */
         ALWAYS_QUOTE_STRINGS(true);
 
-        protected final boolean _defaultState;
-        protected final int _mask;
+        private final boolean _defaultState;
+        private final int _mask;
 
         /**
          * Method that calculates bit set (flags) of all features that
@@ -385,25 +386,41 @@ public class HoconGenerator extends GeneratorBase {
     public void writeNumber(int v) throws IOException {
         _verifyValueWrite(WRITE_NUMBER);
         _writeValueSeparator(false);
-        writeRaw(String.valueOf(v));
+        if (_cfgNumbersAsStrings) {
+            _writeQuotedString(String.valueOf(v));
+        } else {
+            writeRaw(String.valueOf(v));
+        }
     }
 
     @Override
     public void writeNumber(long v) throws IOException {
         _verifyValueWrite(WRITE_NUMBER);
         _writeValueSeparator(false);
-        writeRaw(String.valueOf(v));
+        if (_cfgNumbersAsStrings) {
+            _writeQuotedString(String.valueOf(v));
+        } else {
+            writeRaw(String.valueOf(v));
+        }
     }
 
     @Override
     public void writeNumber(BigInteger v) throws IOException {
         _verifyValueWrite(WRITE_NUMBER);
         _writeValueSeparator(false);
-        writeRaw(String.valueOf(v));
+        if (_cfgNumbersAsStrings) {
+            _writeQuotedString(String.valueOf(v));
+        } else {
+            writeRaw(String.valueOf(v));
+        }
     }
 
     @Override
     public void writeNumber(double v) throws IOException {
+        if (_cfgNumbersAsStrings || (NumberOutput.notFinite(v) && isEnabled(JsonGenerator.Feature.QUOTE_NON_NUMERIC_NUMBERS))) {
+            writeString(String.valueOf(v));
+            return;
+        }
         _verifyValueWrite(WRITE_NUMBER);
         _writeValueSeparator(false);
         writeRaw(String.valueOf(v));
@@ -411,6 +428,10 @@ public class HoconGenerator extends GeneratorBase {
 
     @Override
     public void writeNumber(float v) throws IOException {
+        if (_cfgNumbersAsStrings || (NumberOutput.notFinite(v) && isEnabled(JsonGenerator.Feature.QUOTE_NON_NUMERIC_NUMBERS))) {
+            writeString(String.valueOf(v));
+            return;
+        }
         _verifyValueWrite(WRITE_NUMBER);
         _writeValueSeparator(false);
         writeRaw(String.valueOf(v));
@@ -421,7 +442,7 @@ public class HoconGenerator extends GeneratorBase {
         _verifyValueWrite(WRITE_NUMBER);
         _writeValueSeparator(false);
         if (value == null) {
-            writeNull();
+            _writeNull();
         } else {
             // BigDecimal isn't supported by the parser as is and is converted to double (See: ConfigImpl#fromAnyRef(Object object, ConfigOrigin origin,FromMapMode mapMode))
             writeNumber(value.doubleValue());
@@ -432,7 +453,11 @@ public class HoconGenerator extends GeneratorBase {
     public void writeNumber(String encodedValue) throws IOException {
         _verifyValueWrite(WRITE_NUMBER);
         _writeValueSeparator(false);
-        writeRaw(encodedValue);
+        if (_cfgNumbersAsStrings) {
+            _writeQuotedString(encodedValue);
+        } else {
+            writeRaw(encodedValue);
+        }
     }
 
     @Override
