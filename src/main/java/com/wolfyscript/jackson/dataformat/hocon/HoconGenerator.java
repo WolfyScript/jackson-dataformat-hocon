@@ -339,13 +339,15 @@ public class HoconGenerator extends GeneratorBase {
      * @throws IOException If an I/O error occurs
      */
     protected void _writeString(String text) throws IOException {
-        String renderedKey;
         if (Feature.ALWAYS_QUOTE_STRINGS.enabledIn(_hoconFeatures)) {
-            renderedKey = ConfigImplUtil.renderJsonString(text);
+            _writeQuotedString(text);
         } else {
-            renderedKey = _renderStringUnquotedIfPossible(text);
+            _writeUnquotedStringIfPossible(text);
         }
-        _writer.write(renderedKey);
+    }
+
+    protected void _writeQuotedString(String value) throws IOException {
+        _writer.write(ConfigImplUtil.renderJsonString(value));
     }
 
     /**
@@ -355,30 +357,28 @@ public class HoconGenerator extends GeneratorBase {
      * This method was copied from the renderStringUnquotedIfPossible function in {@link ConfigImplUtil}!
      *
      * @param s The value to write.
-     * @return The rendered String
      * @see ConfigImplUtil ConfigImplUtil#renderStringUnquotedIfPossible(String)
      */
-    protected String _renderStringUnquotedIfPossible(String s) {
-        if (s.length() == 0) {
-            return ConfigImplUtil.renderJsonString(s);
-        } else {
+    protected void _writeUnquotedStringIfPossible(String s) throws IOException {
+        if (s.length() > 0) {
             int first = s.codePointAt(0);
             if (!Character.isDigit(first) && first != 45) {
                 if (!s.startsWith("include") && !s.startsWith("true") && !s.startsWith("false") && !s.startsWith("null") && !s.contains("//")) {
                     for (int i = 0; i < s.length(); ++i) {
                         char c = s.charAt(i);
                         if (!Character.isLetter(c) && !Character.isDigit(c) && c != '-') {
-                            return ConfigImplUtil.renderJsonString(s);
+                            _writeQuotedString(s);
+                            return;
                         }
                     }
-                    return s;
-                } else {
-                    return ConfigImplUtil.renderJsonString(s);
+                    _writer.write(s);
+                    return;
                 }
-            } else {
-                return ConfigImplUtil.renderJsonString(s);
+                _writeQuotedString(s);
+                return;
             }
         }
+        _writeQuotedString(s);
     }
 
     @Override
