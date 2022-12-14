@@ -317,6 +317,10 @@ public class HoconGenerator extends GeneratorBase {
     public void writeString(String text) throws IOException {
         _verifyValueWrite(WRITE_STRING);
         _writeValueSeparator(false);
+        if (text == null) {
+            _writeNull();
+            return;
+        }
         _writeString(text);
     }
 
@@ -442,7 +446,11 @@ public class HoconGenerator extends GeneratorBase {
     public void writeNull() throws IOException {
         _verifyValueWrite(WRITE_NULL);
         _writeValueSeparator(false);
-        _writer.write("null");
+        _writeNull();
+    }
+
+    private void _writeNull() throws IOException {
+        writeRaw("null");
     }
 
     @Override
