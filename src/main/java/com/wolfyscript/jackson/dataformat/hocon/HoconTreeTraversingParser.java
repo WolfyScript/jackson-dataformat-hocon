@@ -46,12 +46,6 @@ public class HoconTreeTraversingParser extends ParserMinimalBase {
     protected JsonToken _nextToken;
 
     /**
-     * Flag needed to handle recursion into contents of child
-     * Array/Object nodes.
-     */
-    protected boolean _startContainer;
-
-    /**
      * Flag that indicates whether parser is closed or not. Gets
      * set when parser is either closed by explicit call
      * ({@link #close}) or when end-of-input is reached.
@@ -83,23 +77,14 @@ public class HoconTreeTraversingParser extends ParserMinimalBase {
         super(0);
         _rootObject = n;
         _objectCodec = codec;
-        if (n.valueType() == ConfigValueType.LIST) {
-            _nextToken = JsonToken.START_ARRAY;
-            _nodeCursor = new HoconNodeCursor.Array(n, null);
-        } else if (n.valueType() == ConfigValueType.OBJECT) {
-            _nextToken = JsonToken.START_OBJECT;
-            _nodeCursor = new HoconNodeCursor.Object(n, null);
-        } else { // value node
-            _nodeCursor = new HoconNodeCursor.RootValue(n, null);
-        }
+        _nodeCursor = new HoconNodeCursor.RootValue(n, null);
     }
 
     public static JsonToken asJsonToken(ConfigValue value) {
         switch(value.valueType()) {
             case BOOLEAN:
                 boolean bool = (Boolean) value.unwrapped();
-                return (bool) ? JsonToken.VALUE_TRUE
-                        : JsonToken.VALUE_FALSE;
+                return (bool) ? JsonToken.VALUE_TRUE : JsonToken.VALUE_FALSE;
             case NULL:
                 return JsonToken.VALUE_NULL;
             case NUMBER:
@@ -161,43 +146,24 @@ public class HoconTreeTraversingParser extends ParserMinimalBase {
     @Override
     public JsonToken nextToken() throws IOException, JsonParseException
     {
-        if (_nextToken != null) {
-            _currToken = _nextToken;
-            _nextToken = null;
-            return _currToken;
-        }
-        // are we to descend to a container child?
-        if (_startContainer) {
-            _startContainer = false;
-            // minor optimization: empty containers can be skipped
-            if (!_nodeCursor.currentHasChildren()) {
-                _currToken = (_currToken == JsonToken.START_OBJECT) ?
-                        JsonToken.END_OBJECT : JsonToken.END_ARRAY;
-                return _currToken;
-            }
-            _nodeCursor = _nodeCursor.iterateChildren();
-            _currToken = _nodeCursor.nextToken();
-            if (_currToken == JsonToken.START_OBJECT || _currToken == JsonToken.START_ARRAY) {
-                _startContainer = true;
-            }
-            return _currToken;
-        }
-        // No more content?
-        if (_nodeCursor == null) {
-            _closed = true; // if not already set
+        _currToken = _nodeCursor.nextToken();
+        if (_currToken == null) {
+            _closed = true;
             return null;
         }
-        // Otherwise, next entry from current cursor
-        _currToken = _nodeCursor.nextToken();
-        if (_currToken != null) {
-            if (_currToken == JsonToken.START_OBJECT || _currToken == JsonToken.START_ARRAY) {
-                _startContainer = true;
-            }
-            return _currToken;
+        switch (_currToken) {
+            case START_OBJECT:
+                _nodeCursor = _nodeCursor.startObject();
+                break;
+            case START_ARRAY:
+                _nodeCursor = _nodeCursor.startArray();
+                break;
+            case END_OBJECT:
+            case END_ARRAY:
+                _nodeCursor = _nodeCursor.getParent();
+                break;
+            default: // Do not change cursor
         }
-        // null means no more children; need to return end marker
-        _currToken = _nodeCursor.endToken();
-        _nodeCursor = _nodeCursor.getParent();
         return _currToken;
     }
 
@@ -208,10 +174,10 @@ public class HoconTreeTraversingParser extends ParserMinimalBase {
     public JsonParser skipChildren() throws IOException, JsonParseException
     {
         if (_currToken == JsonToken.START_OBJECT) {
-            _startContainer = false;
+            _nodeCursor = _nodeCursor.getParent();
             _currToken = JsonToken.END_OBJECT;
         } else if (_currToken == JsonToken.START_ARRAY) {
-            _startContainer = false;
+            _nodeCursor = _nodeCursor.getParent();
             _currToken = JsonToken.END_ARRAY;
         }
         return this;
@@ -230,14 +196,21 @@ public class HoconTreeTraversingParser extends ParserMinimalBase {
 
     @Override
     public String getCurrentName() {
-        return (_nodeCursor == null) ? null : _nodeCursor.getCurrentName();
+        HoconNodeCursor cursor = _nodeCursor;
+        if (_currToken == JsonToken.START_OBJECT || _currToken == JsonToken.START_ARRAY) {
+            cursor = cursor.getParent();
+        }
+        return (cursor == null) ? null : cursor.getCurrentName();
     }
 
     @Override
-    public void overrideCurrentName(String name)
-    {
-        if (_nodeCursor != null) {
-            _nodeCursor.overrideCurrentName(name);
+    public void overrideCurrentName(String name) {
+        HoconNodeCursor cursor = _nodeCursor;
+        if (_currToken == JsonToken.START_OBJECT || _currToken == JsonToken.START_ARRAY) {
+            cursor = cursor.getParent();
+        }
+        if (cursor != null) {
+            cursor.overrideCurrentName(name);
         }
     }
 
@@ -334,13 +307,13 @@ public class HoconTreeTraversingParser extends ParserMinimalBase {
     @Override
     public BigInteger getBigIntegerValue() throws IOException, JsonParseException {
         //I wish we could get at the string representation instead
-        Long value = ((Number)  currentNumericNode().unwrapped()).longValue();
+        long value = ((Number)  currentNumericNode().unwrapped()).longValue();
         return BigInteger.valueOf(value);
     }
 
     @Override
     public BigDecimal getDecimalValue() throws IOException, JsonParseException {
-        Double value = ((Number) currentNumericNode().unwrapped()).doubleValue();
+        double value = ((Number) currentNumericNode().unwrapped()).doubleValue();
         return BigDecimal.valueOf(value);
     }
 
