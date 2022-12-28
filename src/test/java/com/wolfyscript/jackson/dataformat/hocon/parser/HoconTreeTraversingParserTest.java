@@ -32,7 +32,7 @@ public class HoconTreeTraversingParserTest {
 		return s.hasNext() ? s.next() : "";
 	}
 
-	private void assertConf(Configuration c) {
+	static void assertConf(Configuration c) {
 		Assert.assertEquals("This value comes from complex-app's complex2.conf", c.something);
 		Assert.assertEquals(2.0, c.value, .001);
 		Assert.assertEquals("This value comes from complex-app's complex2.conf in its custom simple-lib-context", c.context.lib.foo);
@@ -41,43 +41,43 @@ public class HoconTreeTraversingParserTest {
 
 	@Test
 	public void testUrl() throws IOException {
-		HoconMapper mapper = new HoconMapper();;
+		HoconMapper mapper = new HoconMapper();
 		Configuration c = mapper.readValue(url("test.conf"), Configuration.class);
 		assertConf(c);
 	}
 
 	@Test
 	public void testStream() throws IOException {
-		HoconMapper mapper = new HoconMapper();;
+		HoconMapper mapper = new HoconMapper();
 		Configuration c = mapper.readValue(stream("test.conf"), Configuration.class);
 		assertConf(c);
 	}
 
 	@Test
 	public void testReader() throws IOException {
-		HoconMapper mapper = new HoconMapper();;
+		HoconMapper mapper = new HoconMapper();
 		Configuration c = mapper.readValue(reader(stream("test.conf")), Configuration.class);
 		assertConf(c);
 	}
 
 	@Test
 	public void testString() throws IOException {
-		HoconMapper mapper = new HoconMapper();;
+		HoconMapper mapper = new HoconMapper();
 		Configuration c = mapper.readValue(stream("test.conf"), Configuration.class);
 		assertConf(c);
 	}
 
 	@Test
 	public void testSubstitution() throws IOException {
-		HoconMapper mapper = new HoconMapper();;
+		HoconMapper mapper = new HoconMapper();
 		Map<String, String> map = mapper.readValue(stream("test-substitution.conf"), new TypeReference<Map<String, String>>() {});
-		Assert.assertEquals("This value ", map.get("foo"));
-		Assert.assertEquals("This value  commes from foo", map.get("bar"));
+		Assert.assertEquals("This value", map.get("foo"));
+		Assert.assertEquals("This value comes from foo", map.get("bar"));
 	}
 
 	@Test
 	public void testInclusionUrl() throws IOException {
-		HoconMapper mapper = new HoconMapper();;
+		HoconMapper mapper = new HoconMapper();
 		Configuration c = mapper.readValue(url("test-inclusion.conf"), Configuration.class);
 		assertConf(c);
 	}
@@ -89,6 +89,13 @@ public class HoconTreeTraversingParserTest {
 		// inclusion will not work with Stream
 		Assert.assertNull(c.something);
 		Assert.assertEquals(0.0, c.value, .001);
+	}
+
+	public void testCurrentValue() {
+
+
+
+
 	}
 
 }
