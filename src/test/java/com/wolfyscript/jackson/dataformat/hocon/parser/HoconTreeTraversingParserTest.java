@@ -1,18 +1,17 @@
 package com.wolfyscript.jackson.dataformat.hocon.parser;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.wolfyscript.jackson.dataformat.hocon.HoconFactory;
-import java.nio.charset.StandardCharsets;
-import org.junit.Assert;
-import org.junit.Test;
-
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.wolfyscript.jackson.dataformat.hocon.HoconMapper;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Scanner;
+import org.junit.Assert;
+import org.junit.Test;
 
 public class HoconTreeTraversingParserTest {
 
@@ -42,50 +41,50 @@ public class HoconTreeTraversingParserTest {
 
 	@Test
 	public void testUrl() throws IOException {
-		ObjectMapper mapper = new ObjectMapper(new HoconFactory());
+		HoconMapper mapper = new HoconMapper();;
 		Configuration c = mapper.readValue(url("test.conf"), Configuration.class);
 		assertConf(c);
 	}
 
 	@Test
 	public void testStream() throws IOException {
-		ObjectMapper mapper = new ObjectMapper(new HoconFactory());
+		HoconMapper mapper = new HoconMapper();;
 		Configuration c = mapper.readValue(stream("test.conf"), Configuration.class);
 		assertConf(c);
 	}
 
 	@Test
 	public void testReader() throws IOException {
-		ObjectMapper mapper = new ObjectMapper(new HoconFactory());
+		HoconMapper mapper = new HoconMapper();;
 		Configuration c = mapper.readValue(reader(stream("test.conf")), Configuration.class);
 		assertConf(c);
 	}
 
 	@Test
 	public void testString() throws IOException {
-		ObjectMapper mapper = new ObjectMapper(new HoconFactory());
+		HoconMapper mapper = new HoconMapper();;
 		Configuration c = mapper.readValue(stream("test.conf"), Configuration.class);
 		assertConf(c);
 	}
 
 	@Test
 	public void testSubstitution() throws IOException {
-		ObjectMapper mapper = new ObjectMapper(new HoconFactory());
-		Map<String, String> map = mapper.readValue(stream("test-substitution.conf"), Map.class);
+		HoconMapper mapper = new HoconMapper();;
+		Map<String, String> map = mapper.readValue(stream("test-substitution.conf"), new TypeReference<Map<String, String>>() {});
 		Assert.assertEquals("This value ", map.get("foo"));
 		Assert.assertEquals("This value  commes from foo", map.get("bar"));
 	}
 
 	@Test
 	public void testInclusionUrl() throws IOException {
-		ObjectMapper mapper = new ObjectMapper(new HoconFactory());
+		HoconMapper mapper = new HoconMapper();;
 		Configuration c = mapper.readValue(url("test-inclusion.conf"), Configuration.class);
 		assertConf(c);
 	}
 
 	@Test
 	public void testInclusionStreamFails() throws IOException {
-		ObjectMapper mapper = new ObjectMapper(new HoconFactory());
+		HoconMapper mapper = new HoconMapper();
 		Configuration c = mapper.readValue(stream("test-inclusion.conf"), Configuration.class);
 		// inclusion will not work with Stream
 		Assert.assertNull(c.something);
