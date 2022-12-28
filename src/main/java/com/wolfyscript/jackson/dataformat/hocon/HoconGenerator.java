@@ -7,6 +7,7 @@ import com.fasterxml.jackson.core.ObjectCodec;
 import com.fasterxml.jackson.core.SerializableString;
 import com.fasterxml.jackson.core.base.GeneratorBase;
 import com.fasterxml.jackson.core.io.IOContext;
+import com.fasterxml.jackson.core.io.NumberOutput;
 import com.fasterxml.jackson.core.json.JsonWriteContext;
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import com.typesafe.config.impl.ConfigImplUtil;
@@ -54,8 +55,8 @@ public class HoconGenerator extends GeneratorBase {
          */
         ALWAYS_QUOTE_STRINGS(true);
 
-        protected final boolean _defaultState;
-        protected final int _mask;
+        private final boolean _defaultState;
+        private final int _mask;
 
         /**
          * Method that calculates bit set (flags) of all features that
@@ -317,6 +318,10 @@ public class HoconGenerator extends GeneratorBase {
     public void writeString(String text) throws IOException {
         _verifyValueWrite(WRITE_STRING);
         _writeValueSeparator(false);
+        if (text == null) {
+            _writeNull();
+            return;
+        }
         _writeString(text);
     }
 
@@ -335,13 +340,15 @@ public class HoconGenerator extends GeneratorBase {
      * @throws IOException If an I/O error occurs
      */
     protected void _writeString(String text) throws IOException {
-        String renderedKey;
         if (Feature.ALWAYS_QUOTE_STRINGS.enabledIn(_hoconFeatures)) {
-            renderedKey = ConfigImplUtil.renderJsonString(text);
+            _writeQuotedString(text);
         } else {
-            renderedKey = _renderStringUnquotedIfPossible(text);
+            _writeUnquotedStringIfPossible(text);
         }
-        _writer.write(renderedKey);
+    }
+
+    protected void _writeQuotedString(String value) throws IOException {
+        _writer.write(ConfigImplUtil.renderJsonString(value));
     }
 
     /**
@@ -351,55 +358,69 @@ public class HoconGenerator extends GeneratorBase {
      * This method was copied from the renderStringUnquotedIfPossible function in {@link ConfigImplUtil}!
      *
      * @param s The value to write.
-     * @return The rendered String
      * @see ConfigImplUtil ConfigImplUtil#renderStringUnquotedIfPossible(String)
      */
-    protected String _renderStringUnquotedIfPossible(String s) {
-        if (s.length() == 0) {
-            return ConfigImplUtil.renderJsonString(s);
-        } else {
+    protected void _writeUnquotedStringIfPossible(String s) throws IOException {
+        if (s.length() > 0) {
             int first = s.codePointAt(0);
             if (!Character.isDigit(first) && first != 45) {
                 if (!s.startsWith("include") && !s.startsWith("true") && !s.startsWith("false") && !s.startsWith("null") && !s.contains("//")) {
                     for (int i = 0; i < s.length(); ++i) {
                         char c = s.charAt(i);
                         if (!Character.isLetter(c) && !Character.isDigit(c) && c != '-') {
-                            return ConfigImplUtil.renderJsonString(s);
+                            _writeQuotedString(s);
+                            return;
                         }
                     }
-                    return s;
-                } else {
-                    return ConfigImplUtil.renderJsonString(s);
+                    _writer.write(s);
+                    return;
                 }
-            } else {
-                return ConfigImplUtil.renderJsonString(s);
+                _writeQuotedString(s);
+                return;
             }
         }
+        _writeQuotedString(s);
     }
 
     @Override
     public void writeNumber(int v) throws IOException {
         _verifyValueWrite(WRITE_NUMBER);
         _writeValueSeparator(false);
-        writeRaw(String.valueOf(v));
+        if (_cfgNumbersAsStrings) {
+            _writeQuotedString(String.valueOf(v));
+        } else {
+            writeRaw(String.valueOf(v));
+        }
     }
 
     @Override
     public void writeNumber(long v) throws IOException {
         _verifyValueWrite(WRITE_NUMBER);
         _writeValueSeparator(false);
-        writeRaw(String.valueOf(v));
+        if (_cfgNumbersAsStrings) {
+            _writeQuotedString(String.valueOf(v));
+        } else {
+            writeRaw(String.valueOf(v));
+        }
     }
 
     @Override
     public void writeNumber(BigInteger v) throws IOException {
         _verifyValueWrite(WRITE_NUMBER);
         _writeValueSeparator(false);
-        writeRaw(String.valueOf(v));
+        if (_cfgNumbersAsStrings) {
+            _writeQuotedString(String.valueOf(v));
+        } else {
+            writeRaw(String.valueOf(v));
+        }
     }
 
     @Override
     public void writeNumber(double v) throws IOException {
+        if (_cfgNumbersAsStrings || (NumberOutput.notFinite(v) && isEnabled(JsonGenerator.Feature.QUOTE_NON_NUMERIC_NUMBERS))) {
+            writeString(String.valueOf(v));
+            return;
+        }
         _verifyValueWrite(WRITE_NUMBER);
         _writeValueSeparator(false);
         writeRaw(String.valueOf(v));
@@ -407,6 +428,10 @@ public class HoconGenerator extends GeneratorBase {
 
     @Override
     public void writeNumber(float v) throws IOException {
+        if (_cfgNumbersAsStrings || (NumberOutput.notFinite(v) && isEnabled(JsonGenerator.Feature.QUOTE_NON_NUMERIC_NUMBERS))) {
+            writeString(String.valueOf(v));
+            return;
+        }
         _verifyValueWrite(WRITE_NUMBER);
         _writeValueSeparator(false);
         writeRaw(String.valueOf(v));
@@ -417,7 +442,7 @@ public class HoconGenerator extends GeneratorBase {
         _verifyValueWrite(WRITE_NUMBER);
         _writeValueSeparator(false);
         if (value == null) {
-            writeNull();
+            _writeNull();
         } else {
             // BigDecimal isn't supported by the parser as is and is converted to double (See: ConfigImpl#fromAnyRef(Object object, ConfigOrigin origin,FromMapMode mapMode))
             writeNumber(value.doubleValue());
@@ -428,7 +453,11 @@ public class HoconGenerator extends GeneratorBase {
     public void writeNumber(String encodedValue) throws IOException {
         _verifyValueWrite(WRITE_NUMBER);
         _writeValueSeparator(false);
-        writeRaw(encodedValue);
+        if (_cfgNumbersAsStrings) {
+            _writeQuotedString(encodedValue);
+        } else {
+            writeRaw(encodedValue);
+        }
     }
 
     @Override
@@ -442,7 +471,11 @@ public class HoconGenerator extends GeneratorBase {
     public void writeNull() throws IOException {
         _verifyValueWrite(WRITE_NULL);
         _writeValueSeparator(false);
-        _writer.write("null");
+        _writeNull();
+    }
+
+    private void _writeNull() throws IOException {
+        writeRaw("null");
     }
 
     @Override
