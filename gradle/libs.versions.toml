@@ -1,0 +1,15 @@
+# https://docs.gradle.org/current/userguide/platforms.html#sub::toml-dependencies-format
+
+[versions]
+com-fasterxml-jackson-core-jackson-annotations = "2.15.4"
+com-fasterxml-jackson-core-jackson-core = "2.15.4"
+com-fasterxml-jackson-core-jackson-databind = "2.15.4"
+com-typesafe-config = "1.3.1"
+junit-junit = "4.13.2"
+
+[libraries]
+com-fasterxml-jackson-core-jackson-annotations = { module = "com.fasterxml.jackson.core:jackson-annotations", version.ref = "com-fasterxml-jackson-core-jackson-annotations" }
+com-fasterxml-jackson-core-jackson-core = { module = "com.fasterxml.jackson.core:jackson-core", version.ref = "com-fasterxml-jackson-core-jackson-core" }
+com-fasterxml-jackson-core-jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "com-fasterxml-jackson-core-jackson-databind" }
+com-typesafe-config = { module = "com.typesafe:config", version.ref = "com-typesafe-config" }
+junit-junit = { module = "junit:junit", version.ref = "junit-junit" }
